@@ -7,6 +7,16 @@
 #define COLOR_ORDER RGB
 CRGB leds[NUM_LEDS];
 
+enum ScenarioState {
+  Static_Movie = 1,
+  Play_Explnation_Movie = 2,
+  Unprotected_Start = 3,
+  Unprotected_Stop = 4,
+  Unprotected_End = 5,
+  Protedted = 6
+  
+};
+
 #define UPDATES_PER_SECOND 100
 #define SOC_led_num 21
 #define CarA_led_num 10
