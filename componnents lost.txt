@@ -1,0 +1,7 @@
+6 - buttons from the store, see what they have
+2 - servo 360 from the store, see what they have
+2 - power supply 
+
+in stock:
+3 - led strips
+2 - touch sensor - Force sensitive resistor
