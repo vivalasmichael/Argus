@@ -9,7 +9,7 @@ CRGB leds[NUM_LEDS];
 ///////////////// program consts  //////////////////
 #define Car_LED 4
 #define HACKER_LED 5
-#define TECHNICIAN 3  // check with Ram
+#define TECHNICIAN_LED 3  // check with Ram
 #define PARKING_LEDS_START 6
 #define PARKING_LEDS_END 10
 #define IN_SECURITY_CENTER_START 11
@@ -28,7 +28,8 @@ CRGB leds[NUM_LEDS];
 const int buttonPin1 = 2;
 const int buttonPin2 = 6;
 const int buttonPin3 = 7;
-const int buttonPin4 = 8;
+int pressurePin = A0;
+int touch_force;
 ///////////////// Scenarios //////////////////
 enum ScenarioState {
   STATIC_MOVIE = 1,
@@ -47,7 +48,6 @@ void setup() {
   pinMode(buttonPin1, INPUT);
   pinMode(buttonPin2, INPUT);
   pinMode(buttonPin3, INPUT);
-  pinMode(buttonPin4, INPUT);
 }
 
 void loop() {
@@ -58,6 +58,7 @@ void loop() {
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
       String data = Serial.readString();
       if (data == "done") {
+        Serial.println("DONE IS HERE");
         data = "";
         break;
       }
@@ -83,12 +84,11 @@ void loop() {
       if (data == "stop_car") {
         Serial.println(UNPROTECTED_STOP);
         ////////////// stop servo //////////////////
-        ///////////// start touch //////////////////
         data = "";
         continue;
       }
       unsigned long startedAt = millis();
-      while (digitalRead(buttonPin2) == LOW && millis() - startedAt < TIME_LIMIT_FOR_TOUCH) {} ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
+      while (analogRead(pressurePin) < 500 && millis() - startedAt < TIME_LIMIT_FOR_TOUCH) {} ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
       Serial.println(UNPROTECTED_END);
       startedAt = millis();
       while (millis() - startedAt < TIME_FOR_SECOND_MOVIE_UNPROTECTED) {
