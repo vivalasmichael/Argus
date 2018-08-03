@@ -9,6 +9,7 @@ CRGB leds[NUM_LEDS];
 ///////////////// program consts  //////////////////
 #define Car_LED 4
 #define HACKER_LED 5
+#define TECHNICIAN 3  // check with Ram
 #define PARKING_LEDS_START 6
 #define PARKING_LEDS_END 10
 #define IN_SECURITY_CENTER_START 11
@@ -62,6 +63,7 @@ void loop() {
       }
     }
   }// first button if
+  
   if (digitalRead(buttonPin2) == HIGH) {
     Serial.println("Button 2 pressed");
     Serial.println(UNPROTECTED_START);
@@ -75,7 +77,6 @@ void loop() {
       leds[i] = CRGB::Red;
     }
     FastLED.show();
-
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_FOR_FIRST_MOVIE_UNPROTECTED) {
       String data = Serial.readString();
@@ -93,13 +94,10 @@ void loop() {
       while (millis() - startedAt < TIME_FOR_SECOND_MOVIE_UNPROTECTED) {
         ////////////// start servo //////////////////
       }
-      ////////// shut down all leds //////////
-      for (int i = 0; i <= NUM_LEDS; i++) {
-        leds[i] = CRGB::Black;
-        FastLED.show();
-      }
+      leds_off();
     }
   } // second button if
+  
   if (digitalRead(buttonPin3) == HIGH) {
     Serial.println("Button 3 pressed");
     Serial.println(PROTECTED);
@@ -119,11 +117,16 @@ void loop() {
       }
       FastLED.show();
     }
-    ////////// shut down all leds //////////
-    for (int i = 0; i <= NUM_LEDS; i++) {
-      leds[i] = CRGB::Black;
-      FastLED.show();
-    }
+    leds_off();
   }// third button if
-
 }
+
+////////// shut down all leds //////////
+void leds_off() {
+  for (int i = 0; i <= NUM_LEDS; i++) {
+    leds[i] = CRGB::Black;
+    FastLED.show();
+  }
+}
+
+
