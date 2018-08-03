@@ -1,10 +1,11 @@
 6 - buttons from the store, see what they have
-2 - servo 360 from the store, see what they have
+2 - stepper motor from the store, see what they have
 2 - power supply 
 resistors for buttons, servo and touch
-cables
+wires
 breadboard
 Arduino + cable
+2 - RGB led
 
 in stock:
 3 - led strips
