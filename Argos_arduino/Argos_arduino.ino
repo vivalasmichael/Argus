@@ -42,7 +42,7 @@ enum ScenarioState {
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("START");
+  //Serial.println("START");
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setBrightness(  BRIGHTNESS );
   pinMode(buttonPin1, INPUT);
@@ -52,13 +52,13 @@ void setup() {
 
 void loop() {
   if (digitalRead(buttonPin1) == HIGH) {
-    Serial.println("Button 1 pressed");
+    //Serial.println("Button 1 pressed");
     Serial.println(PLAY_EXPLANATION_MOVIE);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
       String data = Serial.readString();
       if (data == "done") {
-        Serial.println("DONE IS HERE");
+        //Serial.println("DONE IS HERE");
         data = "";
         break;
       }
@@ -66,7 +66,7 @@ void loop() {
   }// first button if
   
   if (digitalRead(buttonPin2) == HIGH) {
-    Serial.println("Button 2 pressed");
+    //Serial.println("Button 2 pressed");
     Serial.println(UNPROTECTED_START);
     /////////////////// start servo ////////////////////////
     leds[Car_LED] = CRGB::Green;
@@ -99,7 +99,7 @@ void loop() {
   } // second button if
   
   if (digitalRead(buttonPin3) == HIGH) {
-    Serial.println("Button 3 pressed");
+    //Serial.println("Button 3 pressed");
     Serial.println(PROTECTED);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_PROTECTED_MOVIE) {
