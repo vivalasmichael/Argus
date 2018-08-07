@@ -42,7 +42,11 @@ enum ScenarioState {
 
 void setup() {
   Serial.begin(9600);
+<<<<<<< HEAD
   //Serial.println("START");
+=======
+  Serial.println(1);
+>>>>>>> 8a2d0999ec8ec029414deb75165f97e3d9306f30
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setBrightness(  BRIGHTNESS );
   pinMode(buttonPin1, INPUT);
