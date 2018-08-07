@@ -8,12 +8,12 @@ using System.Threading;
 public class MainApp : MonoBehaviour 
 {
     private Thread _t1;
-    SerialPort stram = new SerialPort("COM11",9600);
+    SerialPort stram = new SerialPort("COM4",9600);
     SerialDataReceivedEventHandler handler;
     
     // Use this for initialization
     void Start () {
-        video.GlobalVid.SetVideo(0);
+        video.GlobalVid.SetVideo(1);
         handler = new SerialDataReceivedEventHandler(Stream_DataReceived);
       //  stram.BaudRate = 9600;
       //  stram.DataBits = 8;
@@ -51,7 +51,31 @@ public class MainApp : MonoBehaviour
         }
     }
 
- 
+    bool wasVideoActivated = false;
+    int newVid = 0;
+
+    private void Update()
+    {
+        if (wasVideoActivated) {
+            wasVideoActivated = false;
+            video.GlobalVid.SetVideo(newVid);
+            
+        }
+        
+    }
+
+    public void ChangeVido(int vid) {
+        newVid = vid;
+        wasVideoActivated = true;
+        
+    }
+    public void OnDestroy()
+    {
+        stram.Close();
+        _t1.Abort();
+    }
+
+
     public void SerialRun() {
         try
         {
@@ -60,12 +84,13 @@ public class MainApp : MonoBehaviour
                 if (stram.IsOpen)
                 {
                     string ans = stram.ReadLine();
-                    
-                    if (ans != null)
-                    {
+               //     Debug.Log("input from ard:" + ans);
+                   if (ans != null)
+                   {
                         int intAns = int.Parse(ans);
-                        Debug.Log("input from ard:" + ans);
-                        Debug.Log("input from ard after parse:" + intAns);
+                    //   Debug.Log("input from ard:" + ans);
+                    //    Debug.Log("input from ard after parse:" + intAns);
+                        ChangeVido(intAns);
                     }
 
                 }

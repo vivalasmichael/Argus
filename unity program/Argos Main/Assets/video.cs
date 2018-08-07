@@ -17,22 +17,6 @@ public class video : MonoBehaviour {
     {
         GlobalVid = this;
         //Application.runInBackground = true;
-    }
-
-    public void SetVideo(int v) {
-        if (runningVido != null) {
-            StopCoroutine(runningVido);
-        }
-        
-        runningVido = StartCoroutine(playVideo(v));
-
-    }
- 
-
-
-
-    public IEnumerator playVideo(int vid) {
-
         //Disable Play on Awake for both Video and Audio
         videoPlayer.playOnAwake = false;
         audioSource.playOnAwake = false;
@@ -46,6 +30,25 @@ public class video : MonoBehaviour {
         //Assign the Audio from Video to AudioSource to be played
         videoPlayer.EnableAudioTrack(0, true);
         videoPlayer.SetTargetAudioSource(0, audioSource);
+    }
+
+    public void SetVideo(int v) {
+        if (runningVido != null) {
+           
+            StopCoroutine(runningVido);
+        }
+        
+        runningVido = StartCoroutine(playVideo(v));
+
+    }
+ 
+
+
+
+    public IEnumerator playVideo(int vid) {
+        Debug.Log(vid);
+
+        
 
         //Set video To Play then prepare Audio to prevent Buffering
         videoPlayer.clip = videosToPlay[vid];
@@ -54,27 +57,28 @@ public class video : MonoBehaviour {
         //Wait until video is prepared
         while (!videoPlayer.isPrepared)
         {
-            Debug.Log("Preparing Video");
+         //   Debug.Log("Preparing Video");
             yield return null;
         }
 
-        Debug.Log("Done Preparing Video");
+      //   Debug.Log("Done Preparing Video");
 
 
         //Play Video
+        //videoPlayer.
         videoPlayer.Play();
 
         //Play Sound
         audioSource.Play();
 
-        Debug.Log("Playing Video");
+      //  Debug.Log("Playing Video");
         while (videoPlayer.isPlaying)
         {
            // Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer.time));
             yield return null;
         }
 
-        Debug.Log("Done Playing Video");
+      //  Debug.Log("Done Playing Video");
     }
 
    
