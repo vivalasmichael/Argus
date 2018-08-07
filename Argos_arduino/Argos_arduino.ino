@@ -1,4 +1,20 @@
 #include <FastLED.h>
+#include <Thread.h>
+#include <ThreadController.h>
+
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
+
+RF24 radio(9, 10);
+const byte addresses[][6] = {"00001", "00002"};
+
+// ThreadController that will controll all threads with multi threhads
+ThreadController controll = ThreadController();
+Thread radioListenerThread = Thread();
+Thread computerListenerThread = Thread();
+
 ///////////////// LEDS  //////////////////
 #define LED_PIN     5
 #define NUM_LEDS    50
@@ -50,26 +66,76 @@ void setup() {
   pinMode(buttonPin1, INPUT);
   pinMode(buttonPin2, INPUT);
   pinMode(buttonPin3, INPUT);
+
+  radio.begin();
+  // Configure Threads
+  radioListenerThread.onRun(chackRadioForInput);
+  radioListenerThread.setInterval(50);
+
+  // Adds both threads to the controller
+  controll.add(&radioListenerThread);
 }
 
+int getMsgFromSerial() {
+  int msg =  -1;
+  if (Serial.available()) {
+    msg = Serial.read();
+      Serial.print(msg);
+  }
+  return msg;
+}
+
+
+void sendMsgToComputer(int msg) {
+  Serial.write((byte*)&msg, sizeof(msg));
+}
+
+
+void sendMsgToRadio(uint32_t msg) {
+  radio.openWritingPipe(addresses[0]);
+  radio.stopListening();
+  radio.write(&msg, sizeof(msg));
+}
+
+void chackRadioForInput() {
+
+  /// Reading from pipe
+  radio.openReadingPipe(1, addresses[0]);
+  radio.startListening();
+  if (radio.available())
+  {
+    int text = 0;
+    radio.read(&text, sizeof(text));
+    Serial.print(text);
+  }
+}
+
+
 void loop() {
+  controll.run();
+  // first button if
   if (digitalRead(buttonPin1) == HIGH) {
     //Serial.println("Button 1 pressed");
-    Serial.println(PLAY_EXPLANATION_MOVIE);
+    Serial.print(PLAY_EXPLANATION_MOVIE);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
-      String data = Serial.readString();
-      if (data == "done") {
-        //Serial.println("DONE IS HERE");
-        data = "";
+      int msg = 0;
+      if ( getMsgFromSerial() == PLAY_EXPLANATION_MOVIE) {
         break;
       }
+      // String data = Serial.readString();
+      //  if (data == "done") {
+      //Serial.println("DONE IS HERE");
+      //    data = "";
+      //    break;
+      //  }
     }
   }// first button if
-  
+
+// second button if
   if (digitalRead(buttonPin2) == HIGH) {
     //Serial.println("Button 2 pressed");
-    Serial.println(UNPROTECTED_START);
+    Serial.print(UNPROTECTED_START);
     /////////////////// start servo ////////////////////////
     leds[Car_LED] = CRGB::Green;
     FastLED.show();
@@ -82,13 +148,18 @@ void loop() {
     FastLED.show();
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_FOR_FIRST_MOVIE_UNPROTECTED) {
-      String data = Serial.readString();
-      if (data == "stop_car") {
-        Serial.println(1);
-        ////////////// stop servo //////////////////
-        data = "";
+      int msg = 0;
+      if ( getMsgFromSerial() == UNPROTECTED_START) {
+        Serial.print(UNPROTECTED_STOP);
         continue;
       }
+     // String data = Serial.readString();
+     // if (data == "stop_car") {
+    //    Serial.println(UNPROTECTED_STOP);
+        ////////////// stop servo //////////////////
+     //   data = "";
+   //     continue;
+   //   }
       unsigned long startedAt = millis();
       while (analogRead(pressurePin) < 500 && millis() - startedAt < TIME_LIMIT_FOR_TOUCH) {} ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
       Serial.println(UNPROTECTED_END);
@@ -99,7 +170,7 @@ void loop() {
       leds_off();
     }
   } // second button if
-  
+// third button if
   if (digitalRead(buttonPin3) == HIGH) {
     //Serial.println("Button 3 pressed");
     Serial.println(PROTECTED);
