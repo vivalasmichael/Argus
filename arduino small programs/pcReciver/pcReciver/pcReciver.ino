@@ -35,10 +35,7 @@ void setup() {
   controll.add(&computerListenerThread);
 }
 void chackRadioForInput() {
-  /// Chack if motoHQ is active and connected to HQ PC
-  if (!wasActivated) {
-    return;
-  }
+
   /// Reading from pipe
   radio.openReadingPipe(1, addresses[0]);
   radio.startListening();
