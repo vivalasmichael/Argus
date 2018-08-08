@@ -14,10 +14,19 @@
 RF24 radio(9, 10);
 const byte addresses[][6] = {"00001", "00002"};
 
+
+/// Motor Vars
+int MODE = 2;
+int APHASE = 4;
+int AENBL = 5;
+// motor speed is any number between 0 and 255
+int MotorSpeed = 50;
+
+
 /// Leds public variables
-int ledG = 3;
-int ledB = 2;
-int ledR = 4;
+int ledG = 6;
+int ledB = 7;
+int ledR = 3;
 bool isGreenActive = false;
 int redBlinkNumber = 0;
 int blueBlinkNumber = 0;
@@ -41,6 +50,11 @@ void setup() {
   pinMode(ledB, OUTPUT);
   //digitalWrite(ledR, HIGH);
 
+  pinMode(MODE, OUTPUT);
+  pinMode(APHASE, OUTPUT);
+  pinMode(AENBL, OUTPUT);
+  digitalWrite(MODE, HIGH); //set mode to high
+
   ledOutputThread.onRun(blinkLeds);
   ledOutputThread.setInterval(0);
   
@@ -62,6 +76,7 @@ void loop() {
     Serial.println(text);
   //  writeToRadio(text);
     handleInput(text);
+    driveForward(APHASE, AENBL);
   }
 }
 
@@ -138,6 +153,21 @@ void writeToRadio(int messege) {
   radio.stopListening();
   radio.write(&messege, sizeof(messege));
   Serial.println(messege);
+}
+
+void driveForward(int Phase, int Enable) {
+  digitalWrite(Phase, LOW);
+  analogWrite(Enable, MotorSpeed);
+}
+
+void driveReverse(int Phase, int Enable) {
+  digitalWrite(Phase, HIGH);
+  analogWrite(Enable, MotorSpeed);
+}
+void setLedColor(int redValue, int greenValue, int blueValue) {
+  analogWrite(ledR, redValue);
+  analogWrite(ledG, greenValue);
+  analogWrite(ledB, blueValue);
 }
 
 
