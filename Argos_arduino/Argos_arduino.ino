@@ -24,7 +24,7 @@ const int button2Pin = 6;
 int button2State = 0;
 int button2Timer = 0;
 bool wasButton2Pressed = false;
-const int button3Pin = 5;
+const int button3Pin = 2;
 int button3State = 0;
 int button3Timer = 0;
 bool wasButton3Pressed = false;
@@ -87,6 +87,8 @@ void setup() {
   // pinMode(buttonPin3, INPUT);
 
   radio.begin();
+    Serial.print("is Chip Connected = " );
+  Serial.println(radio.isChipConnected());
   // Configure Threads
   radioListenerThread.onRun(chackRadioForInput);
   radioListenerThread.setInterval(50);
@@ -180,7 +182,7 @@ void loop() {
 
         unsigned long startedAt = millis();
         ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
-        while (analogRead(pressurePin) < 500 && millis() - startedAt < TIME_LIMIT_FOR_TOUCH) {}
+        while (analogRead(pressurePin) < 100 && millis() - startedAt < TIME_LIMIT_FOR_TOUCH) {}
 
         sendMsgToRadio(3);
         Serial.println("UNPROTECTED_END");

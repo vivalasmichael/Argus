@@ -48,7 +48,7 @@ void setup() {
   pinMode(ledG, OUTPUT);
   pinMode(ledR, OUTPUT);
   pinMode(ledB, OUTPUT);
-  //digitalWrite(ledR, HIGH);
+  digitalWrite(ledR, HIGH);
 
   pinMode(MODE, OUTPUT);
   pinMode(APHASE, OUTPUT);
