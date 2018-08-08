@@ -21,7 +21,7 @@ CRGB leds[NUM_LEDS];
 #define TIME_FOR_EXPLANATION_MOVIE 5000
 #define TIME_BEFORE_CAR_TURNNING_RED_UNPROTECTED 1000
 #define TIME_FOR_FIRST_MOVIE_UNPROTECTED 1000
-#define TIME_LIMIT_FOR_TOUCH 5000
+#define TIME_LIMIT_FOR_TOUCH 15000
 #define TIME_FOR_SECOND_MOVIE_UNPROTECTED 1000
 #define TIME_PROTECTED_MOVIE 1000
 ///////////////// Buttons //////////////////
@@ -53,6 +53,7 @@ void setup() {
 }
 
 void loop() {
+  leds_off();
   if (digitalRead(buttonPin1) == HIGH) {
     //Serial.println("Button 1 pressed");
     Serial.println(PLAY_EXPLANATION_MOVIE);
