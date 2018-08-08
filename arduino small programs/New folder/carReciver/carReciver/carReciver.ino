@@ -75,7 +75,7 @@ void setup() {
   
   controll.add(&ledOutputThread); // & to pass the pointer to it
 }
-
+bool isDriving = false;
 
 void loop() {
 
@@ -91,7 +91,14 @@ void loop() {
     Serial.println(text);
   //  writeToRadio(text);
     handleInput(text);
+    if(!isDriving){
     driveForward(APHASE, AENBL);
+    isDriving = true;
+    }
+    else{
+      driveStop(APHASE, AENBL);
+      isDriving = false;
+      } 
   }
 }
 
@@ -178,6 +185,11 @@ void driveForward(int Phase, int Enable) {
 void driveReverse(int Phase, int Enable) {
   digitalWrite(Phase, HIGH);
   analogWrite(Enable, MotorSpeed);
+}
+
+void driveStop(int Phase, int Enable) {
+  digitalWrite(Phase, HIGH);
+  analogWrite(Enable, 0);
 }
 void setLedColor(int redValue, int greenValue, int blueValue) {
   analogWrite(ledR, redValue);
