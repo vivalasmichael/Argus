@@ -1,0 +1,11 @@
+upper left on the 4 wire row - 1
+upper right on the 4 wire row - 4
+bottom left - 5
+bottom right - 7
+1 - grd 
+2 - 9
+3 - 13
+4 - 12
+5 - v+
+6 - 10
+7 - 11
