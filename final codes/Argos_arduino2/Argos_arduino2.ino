@@ -91,6 +91,7 @@ void setup() {
   radio.stopListening();
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
+  radio.printDetails();
   // Configure Threads
  // radioListenerThread.onRun(chackRadioForInput);
   //radioListenerThread.setInterval(50);

@@ -61,6 +61,7 @@ void setup() {
   
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
+  radio.printDetails();
 
   pinMode(ledG, OUTPUT);
   pinMode(ledR, OUTPUT);
