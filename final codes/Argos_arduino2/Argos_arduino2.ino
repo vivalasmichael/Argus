@@ -83,15 +83,16 @@ void setup() {
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
 
-  
+   
 
 
   radio.begin();
   radio.openWritingPipe(addresses[0]);
   radio.stopListening();
+  radio.setAutoAck(false);
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
-  radio.printDetails();
+  //radio.printDetails();
   // Configure Threads
  // radioListenerThread.onRun(chackRadioForInput);
   //radioListenerThread.setInterval(50);

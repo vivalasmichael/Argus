@@ -58,10 +58,10 @@ void setup() {
   radio.begin();
   radio.openReadingPipe(0, addresses[0]);
   radio.startListening();
-  
+  radio.setAutoAck(false);
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
-  radio.printDetails();
+ // radio.printDetails();
 
   pinMode(ledG, OUTPUT);
   pinMode(ledR, OUTPUT);
@@ -172,12 +172,7 @@ void blinkLeds() {
 
 }
 
-void writeToRadio(int messege) {
-  radio.openWritingPipe(addresses[0]);
-  radio.stopListening();
-  radio.write(&messege, sizeof(messege));
-  Serial.println(messege);
-}
+
 
 void driveForward(int Phase, int Enable) {
   digitalWrite(Phase, LOW);
