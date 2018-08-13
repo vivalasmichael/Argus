@@ -2,9 +2,9 @@
 int MODE = 2;
 int APHASE = 4;
 int AENBL = 5;
-int redPin= 9;
-int greenPin = 10;
-int bluePin = 11;
+int redPin= 3;
+int greenPin = 6;
+int bluePin = 7;
 // motor speed is any number between 0 and 255
 int MotorSpeed = 50;
 
