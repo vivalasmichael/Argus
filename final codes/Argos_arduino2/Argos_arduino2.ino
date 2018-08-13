@@ -90,6 +90,7 @@ void setup() {
   radio.openWritingPipe(addresses[0]);
   radio.stopListening();
   radio.setAutoAck(false);
+  radio.setPALevel(RF24_PA_LOW);
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
   //radio.printDetails();
