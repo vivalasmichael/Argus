@@ -44,7 +44,7 @@ CRGB leds[NUM_LEDS];
 ///////////////// Static Light LED Strip Location Definisions  //////////////////
 #define HACKER_LED_START 5
 #define HACKER_LED_END 9
-#define TECHNICIAN_LED_START 10  
+#define TECHNICIAN_LED_START 10
 #define TECHNICIAN_LED_END 14
 #define ANTENA_LED_START 15
 #define ANTENA_LED_END 19
@@ -215,42 +215,87 @@ void loop() {
 int protectedStage = 0;
 int protectedRunningLED = 0;
 int protectedRunningLEDTime = 0;
+int protectedRunningLEDMaxTime = 12000;
 
 void ProtectedLedLoop(unsigned long secenarioTime) {
   //leds[Car_LED] = CRGB::Green;
   if (protectedStage == 0 && secenarioTime >= 3000) {
     protectedStage = 1;
-    Serial.println("Stage 1");
+    //Serial.println("Stage 1");
     for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
       leds[i] = CRGB::Red;
     }
-    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
-      leds[i] = CRGB::Green;
-    }
     FastLED.show();
+    protectedRunningLEDTime = 0;
+    protectedRunningLED = 0;
   }
-  if ((protectedStage == 1 || protectedStage == 2) && secenarioTime >= 6000) {
+  if ((protectedStage == 1 || protectedStage == 2) && secenarioTime >= 6000  && secenarioTime <= 9000) {
+    //leds_off();
     protectedStage = 2;
-    if (protectedRunningLEDTime >= 50) {
+    if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
+       leds_off();
       protectedRunningLEDTime = 0;
-      if (protectedRunningLED + PARKING_LEDS_START >= PARKING_LEDS_END) {
+      if (protectedRunningLED + HACKER_TO_ANTENA_LED_START >= HACKER_TO_ANTENA_LED_END) {
         protectedRunningLED = 0;
       }
+    //  for (int i = HACKER_TO_ANTENA_LED_START; i <= HACKER_TO_ANTENA_LED_END; i++) {
+    //    leds[i] = CRGB::Black;
+   //   }
+      leds[HACKER_TO_ANTENA_LED_START + protectedRunningLED] = CRGB::Red;
+      FastLED.show();
       protectedRunningLED++;
     }
     protectedRunningLEDTime++;
-    
-    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
-      leds[i] = CRGB::Black;
+
+
+  }
+  if (protectedStage == 2 && secenarioTime >= 9000) {
+    leds_off();
+    protectedRunningLEDTime = 0;
+    protectedRunningLED = 0;
+    protectedStage = 3;
+   // Serial.println("Stage 3");
+    for (int i = ANTENA_LED_START; i <= ANTENA_LED_END; i++) {
+      leds[i] = CRGB::Red;
     }
-    leds[PARKING_LEDS_START + protectedRunningLED] = CRGB::Green;
     FastLED.show();
   }
-  if (protectedStage == 2 && secenarioTime >= 12000) {
-    protectedStage = 3;
-    Serial.println("Stage 3");
-    
+  if ((protectedStage == 4 || protectedStage == 3) && secenarioTime >= 12000 && secenarioTime <= 15000) {
+    protectedStage = 4;
+    if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
+      protectedRunningLEDTime = 0;
+      if (protectedRunningLED + ANTENA_TO_CAR_LED_START >= ANTENA_TO_CAR_LED_END) {
+        protectedRunningLED = 0;
+      }
+      for (int i = ANTENA_TO_CAR_LED_START; i <= ANTENA_TO_CAR_LED_END; i++) {
+        leds[i] = CRGB::Black;
+      }
+      leds[ANTENA_TO_CAR_LED_START + protectedRunningLED] = CRGB::Blue;
+      FastLED.show();
+      protectedRunningLED++;
+    }
+    protectedRunningLEDTime++;
+
+
+
   }
+  if (protectedStage == 4 && secenarioTime >= 15000) {
+    protectedRunningLEDTime = 0;
+    protectedRunningLED = 0;
+    protectedStage = 5;
+   // Serial.println("Stage 3");
+    for (int i = ANTENA_LED_START; i <= ANTENA_LED_END; i++) {
+      leds[i] = CRGB::Blue;
+    }
+    FastLED.show();
+  }
+  if (protectedStage == 5 && secenarioTime >= 18000) {
+    protectedRunningLEDTime = 0;
+    protectedRunningLED = 0;
+    protectedStage = 0;
+
+  }
+
 }
 
 int unprotectedStage = 0;
