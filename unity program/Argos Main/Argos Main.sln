@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2017
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Argos Main", "Argos Main.csproj", "{3E9D0ABC-6B96-3F2F-7641-42FC3DA96B99}"
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{2C9FE6B3-C310-F842-6E65-4AD96B626451}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3E9D0ABC-6B96-3F2F-7641-42FC3DA96B99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E9D0ABC-6B96-3F2F-7641-42FC3DA96B99}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E9D0ABC-6B96-3F2F-7641-42FC3DA96B99}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E9D0ABC-6B96-3F2F-7641-42FC3DA96B99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C9FE6B3-C310-F842-6E65-4AD96B626451}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C9FE6B3-C310-F842-6E65-4AD96B626451}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C9FE6B3-C310-F842-6E65-4AD96B626451}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C9FE6B3-C310-F842-6E65-4AD96B626451}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

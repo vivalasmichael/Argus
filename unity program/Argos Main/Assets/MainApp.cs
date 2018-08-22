@@ -8,12 +8,12 @@ using System.Threading;
 public class MainApp : MonoBehaviour 
 {
     private Thread _t1;
-    SerialPort stram = new SerialPort("COM4",9600);
+    SerialPort stram = new SerialPort("COM3",9600);
     SerialDataReceivedEventHandler handler;
     
     // Use this for initialization
     void Start () {
-        video.GlobalVid.SetVideo(1);
+        video.GlobalVid.SetVideo(2);
         OpenSerial();
     }
 
