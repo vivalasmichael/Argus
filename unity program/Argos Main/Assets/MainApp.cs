@@ -14,31 +14,42 @@ public class MainApp : MonoBehaviour
     // Use this for initialization
     void Start () {
         video.GlobalVid.SetVideo(1);
-        handler = new SerialDataReceivedEventHandler(Stream_DataReceived);
-      //  stram.BaudRate = 9600;
-      //  stram.DataBits = 8;
-      //  stram.StopBits = StopBits.One;
-     //   stram.Parity = Parity.None;
-      //  stram.PortName = "COM4";
-        //   stram.Parity = Parity.None;
-      //  stram.StopBits = StopBits.One;
-        stram.DtrEnable = true;
-       stram.Handshake = Handshake.None;
-    //   stram.RtsEnable = true;
-        stram.DataReceived += handler;
+        OpenSerial();
+    }
 
-        stram.Open();
-          if (stram.IsOpen)
-          {
-              Debug.Log("Stream Open!!!");
-            _t1 = new Thread(SerialRun);
-            _t1.Start();
+    public void OpenSerial() {
+        try
+        {
+            handler = new SerialDataReceivedEventHandler(Stream_DataReceived);
+            //  stram.BaudRate = 9600;
+            //  stram.DataBits = 8;
+            //  stram.StopBits = StopBits.One;
+            //   stram.Parity = Parity.None;
+            //  stram.PortName = "COM4";
+            //stram.Parity = Parity.None;
+            //  stram.StopBits = StopBits.One;
+            stram.DtrEnable = true;
+            stram.Handshake = Handshake.None;
+            //   stram.RtsEnable = true;
+            stram.DataReceived += handler;
+
+            stram.Open();
+            if (stram.IsOpen)
+            {
+                Debug.Log("Stream Open!!!");
+                _t1 = new Thread(SerialRun);
+                _t1.Start();
+            }
+            else
+            {
+                Debug.Log("Stream Not Open!!!");
+            }
+
         }
-          else {
-              Debug.Log("Stream Not Open!!!");
-          }
-       
-
+        catch (System.Exception)
+        {
+            Debug.Log("Error Opening Serial Port:");
+        }
     }
 
     public void Stream_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -71,8 +82,17 @@ public class MainApp : MonoBehaviour
     }
     public void OnDestroy()
     {
-        stram.Close();
-        _t1.Abort();
+        try
+        {
+            stram.Close();
+            _t1.Abort();
+
+        }
+        catch (System.Exception)
+        {
+            Debug.Log("Error On Destroy Serial Port:");
+        }
+
     }
 
 

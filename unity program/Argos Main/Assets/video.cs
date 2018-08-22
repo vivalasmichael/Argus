@@ -64,6 +64,17 @@ public class video : MonoBehaviour {
       //   Debug.Log("Done Preparing Video");
 
 
+
+
+        // Skip the first 100 frames.
+        videoPlayer.frame = 1700;
+
+        // Restart from beginning when done.
+        videoPlayer.isLooping = true;
+
+        // Each time we reach the end, we slow down the playback by a factor of 10.
+        videoPlayer.loopPointReached += VideoEndReached;
+
         //Play Video
         //videoPlayer.
         videoPlayer.Play();
@@ -71,14 +82,19 @@ public class video : MonoBehaviour {
         //Play Sound
         audioSource.Play();
 
-      //  Debug.Log("Playing Video");
+        //  Debug.Log("Playing Video");
         while (videoPlayer.isPlaying)
         {
            // Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer.time));
             yield return null;
         }
+   
+        //  Debug.Log("Done Playing Video");
+    }
 
-      //  Debug.Log("Done Playing Video");
+    public void VideoEndReached(VideoPlayer vp) {
+
+        Debug.Log("end point reached");
     }
 
    
