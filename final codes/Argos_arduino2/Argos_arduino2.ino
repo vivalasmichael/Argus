@@ -30,6 +30,9 @@ int button3Timer = 0;
 bool wasButton3Pressed = false;
 
 
+int softpotPin = A1; //analog pin 0
+int softpotReading ;
+
 ///////////////// LEDS  //////////////////
 #define LED_PIN     5
 #define NUM_LEDS    50
@@ -37,31 +40,37 @@ bool wasButton3Pressed = false;
 #define LED_TYPE    WS2811
 #define COLOR_ORDER RGB
 CRGB leds[NUM_LEDS];
-///////////////// program consts  //////////////////
-#define Car_LED 4
-#define HACKER_LED 5
-#define TECHNICIAN_LED 3  // check with Ram
-#define PARKING_LEDS_START 6
-#define PARKING_LEDS_END 10
-#define IN_SECURITY_CENTER_START 11
-#define IN_SECURITY_CENTER_END 15
-#define OUT_SECURITY_CENTER_START 16
-#define OUT_SECURITY_CENTER_END 21
-#define TOUCH_LEDS_START 22
-#define TOUCH_LEDS_END 26
+
+///////////////// Static Light LED Strip Location Definisions  //////////////////
+#define HACKER_LED_START 5
+#define HACKER_LED_END 9
+#define TECHNICIAN_LED_START 10  
+#define TECHNICIAN_LED_END 14
+#define ANTENA_LED_START 15
+#define ANTENA_LED_END 19
+#define PARKING_LEDS_START 20
+#define PARKING_LEDS_END 29
+#define TOUCH_LEDS_START 1
+#define TOUCH_LEDS_END 1
+
+///////////////// Moving Light LED Strip Location Definisions  //////////////////
+#define HACKER_TO_ANTENA_LED_START 30
+#define HACKER_TO_ANTENA_LED_END 34
+#define ANTENA_TO_CAR_LED_START 35
+#define ANTENA_TO_CAR_LED_END 39
+#define CAR_TO_TECHNICIAN_LED_START 40
+#define CAR_TO_TECHNICIAN_LED_END 44
+#define TECHNICIAN_TO_PARKING_LED_START 45
+#define TECHNICIAN_TO_PARKING_LED_END 49
+
+///////////////// Movie Times  //////////////////
 #define TIME_FOR_EXPLANATION_MOVIE 5000
 #define TIME_BEFORE_CAR_TURNNING_RED_UNPROTECTED 1000
-#define TIME_FOR_FIRST_MOVIE_UNPROTECTED 1000
+#define TIME_FOR_FIRST_MOVIE_UNPROTECTED 15000
 #define TIME_LIMIT_FOR_TOUCH 15000
 #define TIME_FOR_SECOND_MOVIE_UNPROTECTED 1000
-#define TIME_PROTECTED_MOVIE 1000
-///////////////// Old Buttons Oren //////////////////
-//const int buttonPin1 = 2;
-//const int buttonPin2 = 6;
-//const int buttonPin3 = 7;
-///////////////// Toch Sensor //////////////////
-int pressurePin = A0;
-int touch_force;
+#define TIME_PROTECTED_MOVIE 20000
+
 ///////////////// Scenarios //////////////////
 enum ScenarioState {
   STATIC_MOVIE = 1,
@@ -71,26 +80,13 @@ enum ScenarioState {
   UNPROTECTED_END = 5,
   PROTECTED = 6
 };
+
+///////////////// Toch Sensor //////////////////
+int pressurePin = A0;
+int touch_force;
+
+
 bool testMode = false;
-void PrintDebug(const char * text) {
-  if (testMode) {
-    Serial.print(text );
-    Serial.println("");
-
-  }
-
-
-}
-
-void PrintDebug(int num) {
-  if (testMode) {
-    Serial.print(num );
-    Serial.println("");
-
-  }
-
-
-}
 
 
 void setup() {
@@ -103,7 +99,7 @@ void setup() {
   pinMode(button1Pin, INPUT);
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
-
+  digitalWrite(softpotPin, HIGH); //enable pullup resistor
 
 
 
@@ -112,8 +108,8 @@ void setup() {
   radio.stopListening();
   radio.setAutoAck(false);
   radio.setPALevel(RF24_PA_LOW);
- PrintDebug("is Chip Connected = " );
- PrintDebug(radio.isChipConnected());
+  PrintDebug("is Chip Connected = " );
+  PrintDebug(radio.isChipConnected());
   //radio.printDetails();
   // Configure Threads
   // radioListenerThread.onRun(chackRadioForInput);
@@ -146,7 +142,7 @@ void sendMsgToComputer(int msg) {
 
 void sendMsgToRadio(int msg) {
   radio.write(&msg, sizeof(msg));
-  delay(100);
+  //delay(100);
 }
 
 
@@ -154,26 +150,18 @@ void sendMsgToRadio(int msg) {
 
 void loop() {
   controll.run();
-  leds_off();
-
-
-
+  //leds_off();
   // first button (PLAY_EXPLANATION_MOVIE)
   if (wasButton1Pressed) {
     sendMsgToRadio(1);
     wasButton1Pressed = false;
-   PrintDebug("Button 1 pressed");
+    PrintDebug("Button 1 pressed");
     Serial.println(PLAY_EXPLANATION_MOVIE);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
-      int msg = 0;
-      if ( getMsgFromSerial() == 49) {
-         PrintDebug("Message Recived Fromn PC and we break");
-        break;
-      }
 
     }
-   PrintDebug("Message Not Recived Fromn PC and we break from timeout");
+    PrintDebug("Message Not Recived Fromn PC and we break from timeout");
   }// first button if
 
   // second button if (UNPROTECTED)
@@ -183,42 +171,40 @@ void loop() {
     PrintDebug("Button 2 pressed");
     Serial.println(UNPROTECTED_START);
     /////////////////// start servo ////////////////////////
-    UnprotectedLedLoop();
+
     unsigned long startedAt = millis();
+
     while (millis() - startedAt < TIME_FOR_FIRST_MOVIE_UNPROTECTED) {
-      int msg = 0;
-      if ( getMsgFromSerial() == UNPROTECTED_START) {
-        PrintDebug("Message Recived Fromn PC and we send Unprotected Stop");
-        Serial.println(UNPROTECTED_STOP);
-        continue;
-      }
-
-      unsigned long startedAt = millis();
-      ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
-      while (analogRead(pressurePin) < 100 && millis() - startedAt < TIME_LIMIT_FOR_TOUCH) {}
-
-      sendMsgToRadio(3);
-      PrintDebug("UNPROTECTED_END");
-      Serial.println(UNPROTECTED_END);
-
-      startedAt = millis();
-      while (millis() - startedAt < TIME_FOR_SECOND_MOVIE_UNPROTECTED) {
-        ////////////// start servo //////////////////
-      }
-      leds_off();
+      UnprotectedLedLoop(millis() - startedAt);
     }
+    unsigned long startedAtInternal = millis();
+    ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
+    while (analogRead(pressurePin) < 100 && millis() - startedAtInternal < TIME_LIMIT_FOR_TOUCH) {}
+    leds_off();
+    sendMsgToRadio(3);
+    PrintDebug("UNPROTECTED_END");
+    Serial.println(UNPROTECTED_END);
+
+    unsigned long startedAtInternal2 = millis();
+    while (millis() - startedAtInternal2 < TIME_FOR_SECOND_MOVIE_UNPROTECTED) {
+      ////////////// start servo //////////////////
+    }
+    leds_off();
+
+
+
   } // second button if
   // third button if (PROTECTED)
   if (wasButton3Pressed) {
     wasButton3Pressed = false;
     sendMsgToRadio(4);
 
-   PrintDebug("Button 3 pressed");
+    PrintDebug("Button 3 pressed");
     Serial.println(PROTECTED);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_PROTECTED_MOVIE) {
       /////////////////// start servo ////////////////////////
-      ProtectedLedLoop();
+      ProtectedLedLoop(millis() - startedAt);
     }
     leds_off();
   }// third button if
@@ -226,32 +212,93 @@ void loop() {
   decraseButtonTimers();
 }
 
-void ProtectedLedLoop() {
-  leds[Car_LED] = CRGB::Green;
-  leds[HACKER_LED] = CRGB::Red;
-  for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
-    leds[i] = CRGB::Green;
+int protectedStage = 0;
+int protectedRunningLED = 0;
+int protectedRunningLEDTime = 0;
+
+void ProtectedLedLoop(unsigned long secenarioTime) {
+  //leds[Car_LED] = CRGB::Green;
+  if (protectedStage == 0 && secenarioTime >= 3000) {
+    protectedStage = 1;
+    Serial.println("Stage 1");
+    for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
+      leds[i] = CRGB::Red;
+    }
+    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
+      leds[i] = CRGB::Green;
+    }
+    FastLED.show();
   }
-  for (int i = IN_SECURITY_CENTER_START; i <= IN_SECURITY_CENTER_END; i++) {
-    leds[i] = CRGB::Red;
+  if ((protectedStage == 1 || protectedStage == 2) && secenarioTime >= 6000) {
+    protectedStage = 2;
+    if (protectedRunningLEDTime >= 50) {
+      protectedRunningLEDTime = 0;
+      if (protectedRunningLED + PARKING_LEDS_START >= PARKING_LEDS_END) {
+        protectedRunningLED = 0;
+      }
+      protectedRunningLED++;
+    }
+    protectedRunningLEDTime++;
+    
+    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
+      leds[i] = CRGB::Black;
+    }
+    leds[PARKING_LEDS_START + protectedRunningLED] = CRGB::Green;
+    FastLED.show();
   }
-  for (int i = OUT_SECURITY_CENTER_START; i <= OUT_SECURITY_CENTER_END; i++) {
-    leds[i] = CRGB::Green;
+  if (protectedStage == 2 && secenarioTime >= 12000) {
+    protectedStage = 3;
+    Serial.println("Stage 3");
+    
   }
-  FastLED.show();
 }
 
+int unprotectedStage = 0;
+int unprotectedRunningLED = 0;
+int unprotectedRunningLEDTime = 0;
+void UnprotectedLedLoop(unsigned long secenarioTime) {
 
-void UnprotectedLedLoop() {
-  leds[Car_LED] = CRGB::Green;
-  FastLED.show();
-  delay(TIME_BEFORE_CAR_TURNNING_RED_UNPROTECTED);
-  leds[Car_LED] = CRGB::Red;
-  leds[HACKER_LED] = CRGB::Red;
-  for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
-    leds[i] = CRGB::Red;
+  if (unprotectedStage == 0 && secenarioTime >= 3000) {
+    unprotectedStage = 1;
+    Serial.println("Stage 1");
+    for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
+      leds[i] = CRGB::Red;
+    }
+    //leds[HACKER_LED] = CRGB::Red;
+    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
+      leds[i] = CRGB::Red;
+    }
+    FastLED.show();
   }
-  FastLED.show();
+  if ((unprotectedStage == 1 || unprotectedStage == 2) && secenarioTime >= 6000) {
+    unprotectedStage = 2;
+    if (unprotectedRunningLEDTime >= 50) {
+      unprotectedRunningLEDTime = 0;
+      if (unprotectedRunningLED + PARKING_LEDS_START >= PARKING_LEDS_END) {
+        unprotectedRunningLED = 0;
+      }
+      unprotectedRunningLED++;
+    }
+    unprotectedRunningLEDTime++;
+    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
+      leds[i] = CRGB::Black;
+    }
+    leds[PARKING_LEDS_START + unprotectedRunningLED] = CRGB::Green;
+    FastLED.show();
+  }
+  if (unprotectedStage == 2 && secenarioTime >= 12000) {
+    unprotectedStage = 3;
+    Serial.println("Stage 3");
+    for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
+      leds[i] = CRGB::Blue;
+    }
+    for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
+      leds[i] = CRGB::Blue;
+    }
+    FastLED.show();
+  }
+
+
 }
 
 
@@ -267,7 +314,7 @@ void leds_off() {
 int startTimer  = 5000;
 // callback for inputButtonThread
 void chackInputButtons() {
-
+  softpotReading = analogRead(softpotPin);
   /// Normal Mode
   /// will only send messages when buttons are pressed
   button1State = digitalRead(button1Pin);
@@ -307,6 +354,27 @@ void decraseButtonTimers() {
     button3Timer--;
   }
 }
+
+void PrintDebug(const char * text) {
+  if (testMode) {
+    Serial.print(text );
+    Serial.println("");
+
+  }
+
+
+}
+
+void PrintDebug(int num) {
+  if (testMode) {
+    Serial.print(num );
+    Serial.println("");
+
+  }
+
+
+}
+
 /*
   void chackRadioForInput() {
 
