@@ -8,12 +8,12 @@ using System.Threading;
 public class MainApp : MonoBehaviour 
 {
     private Thread _t1;
-    SerialPort stram = new SerialPort("COM3",9600);
+    SerialPort stram = new SerialPort("COM4",9600);
     SerialDataReceivedEventHandler handler;
     
     // Use this for initialization
     void Start () {
-        video.GlobalVid.SetVideo(2);
+        video.GlobalVid.SetVideo(VideoType.NotActiveMovie,true);
         OpenSerial();
     }
 
@@ -63,20 +63,56 @@ public class MainApp : MonoBehaviour
     }
 
     bool wasVideoActivated = false;
-    int newVid = 0;
+    public VideoType newVid = VideoType.NotActiveMovie;
+  
 
     private void Update()
     {
         if (wasVideoActivated) {
             wasVideoActivated = false;
-            video.GlobalVid.SetVideo(newVid);
+            video.GlobalVid.SetVideo(newVid,true);
             
         }
         
     }
 
     public void ChangeVido(int vid) {
-        newVid = vid;
+        //NotActiveMovie = 0
+        //ExplanationMovie = 1
+        //ProtectedMovie = 2
+        //UnprotectedStartMovie = 3
+        //UprotectedEndMovie = 4
+       switch (vid) {
+            case 0: {
+                    newVid = VideoType.NotActiveMovie;
+                    break;
+                }
+            case 1:
+                {
+                    newVid = VideoType.ExplanationMovie;
+                    break;
+                }
+            case 2:
+                {
+                    newVid = VideoType.ProtectedMovie;
+                    break;
+                }
+            case 3:
+                {
+                    newVid = VideoType.UnprotectedStartMovie;
+                    break;
+                }
+            case 4:
+                {
+                    newVid = VideoType.UprotectedEndMovie;
+                    break;
+                }
+            default: {
+                    newVid = VideoType.NotActiveMovie;
+                    break;
+                }
+
+        }
         wasVideoActivated = true;
         
     }

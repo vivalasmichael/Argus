@@ -3,6 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
 
+public enum VideoType
+{
+    NotActiveMovie = 0,
+    ExplanationMovie = 1,
+    ProtectedMovie = 2,
+    UnprotectedStartMovie = 3,
+    UprotectedEndMovie = 4
+};
+
 public class video : MonoBehaviour {
     public VideoPlayer videoPlayer;
     public VideoSource videoSource;
@@ -12,6 +21,8 @@ public class video : MonoBehaviour {
 
     public static video GlobalVid;
     public Coroutine runningVido;
+
+
 
     void Start()
     {
@@ -32,13 +43,21 @@ public class video : MonoBehaviour {
         videoPlayer.SetTargetAudioSource(0, audioSource);
     }
 
-    public void SetVideo(int v) {
+    public void SetVideo(VideoType v, bool fade) {
         
         if (runningVido != null)
         {
             if (videoPlayer.isPlaying)
             {
-                StartCoroutine(fadeoutVideo(v));
+                if (fade)
+                {
+                    StartCoroutine(fadeoutVideo(v));
+                }
+                else {
+                    RunMovie(v);
+
+                }
+                
             }
         }
         else {
@@ -47,17 +66,19 @@ public class video : MonoBehaviour {
 
     }
 
-    void RunMovie(int v) {
+    void RunMovie(VideoType v) {
         if(runningVido != null)
         {
+           // videoPlayer.isLooping = false;
             StopCoroutine(runningVido);
         }
-        
+        videoPlayer.Stop();
         runningVido = StartCoroutine(playVideo(v));
     }
 
     bool fadeoutDone = false;
-    public IEnumerator fadeoutVideo(int v) {
+    public IEnumerator fadeoutVideo(VideoType v) {
+
         float a = 1.0f;
         while ( a >= 0f) {
             float colo = videoPlayer.targetCameraAlpha;
@@ -66,8 +87,11 @@ public class video : MonoBehaviour {
             a -= Time.deltaTime;
             yield return null;
         }
-        if (a <= 0.01f)
+
+
+        if (a <= 0.0f)
         {
+            
             RunMovie(v);
         }
         
@@ -77,39 +101,46 @@ public class video : MonoBehaviour {
 
 
 
-    public IEnumerator playVideo(int vid) {
-        Debug.Log(vid);
+    public IEnumerator playVideo(VideoType vid) {
+        Debug.Log(vid + " movie #" +(int)vid + " played");
         
         //Set video To Play then prepare Audio to prevent Buffering
-        videoPlayer.clip = videosToPlay[vid];
+        videoPlayer.clip = videosToPlay[(int)vid];
         videoPlayer.Prepare();
 
         //Wait until video is prepared
         while (!videoPlayer.isPrepared)
         {
-         //   Debug.Log("Preparing Video");
+           // Debug.Log("Preparing Video");
             yield return null;
         }
 
         //   Debug.Log("Done Preparing Video");
         // Skip the first 100 frames.
         //  videoPlayer.frame = 1700;
-
+        videoPlayer.isLooping = true;
         /// Static Replay Movie No activity
-        if (vid == 1)
+        if (vid == VideoType.NotActiveMovie)
         {
             // Restart from beginning when done.
-            videoPlayer.isLooping = true;
+           // videoPlayer.isLooping = true;
         }
         /// Static Replay Movie ransom  
-        if (vid == 2)
+        else if (vid == VideoType.UnprotectedStartMovie)
         {
             // Restart from beginning when done.
-            videoPlayer.isLooping = true;
-            videoPlayer.loopPointReached += VideoRansomEndReached;
+            videoPlayer.loopPointReached += VideoRansomStartMovie;
         }
-        else {
-            // Each time we reach the end, we slow down the playback by a factor of 10.
+        else if (vid == VideoType.UprotectedEndMovie)
+        {
+            // Restart from beginning when done.
+            
+            videoPlayer.loopPointReached += VideoRansomReplayReached;
+           // videoPlayer.isLooping = true;
+        }
+        else if (vid == VideoType.ProtectedMovie || vid == VideoType.ExplanationMovie)
+        {
+            // Restart from beginning when done.
             videoPlayer.loopPointReached += VideoEndReached;
         }
 
@@ -132,14 +163,14 @@ public class video : MonoBehaviour {
                 
                // yield return null;
             }
-
-            if(Mathf.FloorToInt((float)videoPlayer.time) >= 10)
+            
+            if (Mathf.FloorToInt((float)videoPlayer.time) >= 10)
             {
                 if (!testRun)
                 {
-                  //  testRun = true;
-                  //  Debug.Log("Started Video");
-                  //  SetVideo(1);
+                   // testRun = true;
+                   // Debug.Log("Started Video");
+                   // SetVideo(1);
                 }
                 
 
@@ -147,6 +178,9 @@ public class video : MonoBehaviour {
            // Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer.time));
             yield return null;
         }
+
+
+        //videoPlayer.Stop();
     }
 
     bool testRun = false;
@@ -154,28 +188,34 @@ public class video : MonoBehaviour {
     public void VideoEndReached(VideoPlayer vp) {
 
         Debug.Log("end point normal reached");
-        SetVideo(1);
+        SetVideo(VideoType.NotActiveMovie,true);
 
     }
 
     int ransomMovieTimesPlayed = 1;
     int ransomMovieMaxTimesPlayed = 2;
 
-    public void VideoRansomEndReached(VideoPlayer vp)
+    public void VideoRansomReplayReached(VideoPlayer vp)
     {
         if (ransomMovieTimesPlayed >= ransomMovieMaxTimesPlayed)
         {
             ransomMovieTimesPlayed = 0;
             Debug.Log("end point Ransom reached at max times and starting inactive loop");
-            SetVideo(1);
+            SetVideo(VideoType.NotActiveMovie, true);
         }
         else {
+           // SetVideo(VideoType.UprotectedEndMovie, false);
             Debug.Log("end point Ransom reached at times : " + ransomMovieTimesPlayed);
             ransomMovieTimesPlayed++;
-            //SetVideo(2);
         }
         
 
+    }
+
+    public void VideoRansomStartMovie(VideoPlayer vp)
+    {
+        Debug.Log("end point unprotected reached");
+        SetVideo(VideoType.UprotectedEndMovie,false);
     }
 
 

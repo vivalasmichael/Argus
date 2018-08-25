@@ -29,7 +29,11 @@ int button3State = 0;
 int button3Timer = 0;
 bool wasButton3Pressed = false;
 
+///////////////// Toch Sensor //////////////////
+int pressurePin = A0;
+int touch_force;
 
+///////////////// soft Toch Sensor //////////////////
 int softpotPin = A1; //analog pin 0
 int softpotReading ;
 
@@ -42,26 +46,28 @@ int softpotReading ;
 CRGB leds[NUM_LEDS];
 
 ///////////////// Static Light LED Strip Location Definisions  //////////////////
-#define HACKER_LED_START 5
-#define HACKER_LED_END 9
-#define TECHNICIAN_LED_START 10
-#define TECHNICIAN_LED_END 14
-#define ANTENA_LED_START 15
-#define ANTENA_LED_END 19
-#define PARKING_LEDS_START 20
-#define PARKING_LEDS_END 29
-#define TOUCH_LEDS_START 1
-#define TOUCH_LEDS_END 1
+#define HACKER_LED_START 9
+#define HACKER_LED_END 13
+#define TECHNICIAN_LED_START 44
+#define TECHNICIAN_LED_END 48
+#define ANTENA_LED 7
+#define PARKING_LEDS_START 18
+#define PARKING_LEDS_END 23
+#define TOUCH_LEDS_START 0
+#define TOUCH_LEDS_END 0
+
+#define TREE_1 49
+#define TREE_2 17
+#define TREE_3 14
 
 ///////////////// Moving Light LED Strip Location Definisions  //////////////////
-#define HACKER_TO_ANTENA_LED_START 30
-#define HACKER_TO_ANTENA_LED_END 34
-#define ANTENA_TO_CAR_LED_START 35
-#define ANTENA_TO_CAR_LED_END 39
-#define CAR_TO_TECHNICIAN_LED_START 40
-#define CAR_TO_TECHNICIAN_LED_END 44
-#define TECHNICIAN_TO_PARKING_LED_START 45
-#define TECHNICIAN_TO_PARKING_LED_END 49
+#define HACKER_TO_ANTENA_LED 8
+#define ANTENA_TO_CAR_LED_START 1
+#define ANTENA_TO_CAR_LED_END 6
+#define CAR_TO_TECHNICIAN_LED_START 37
+#define CAR_TO_TECHNICIAN_LED_END 43
+#define TECHNICIAN_TO_PARKING_LED_START 24
+#define TECHNICIAN_TO_PARKING_LED_END 35
 
 ///////////////// Movie Times  //////////////////
 #define TIME_FOR_EXPLANATION_MOVIE 5000
@@ -69,24 +75,21 @@ CRGB leds[NUM_LEDS];
 #define TIME_FOR_FIRST_MOVIE_UNPROTECTED 15000
 #define TIME_LIMIT_FOR_TOUCH 15000
 #define TIME_FOR_SECOND_MOVIE_UNPROTECTED 1000
-#define TIME_PROTECTED_MOVIE 20000
+#define TIME_PROTECTED_MOVIE 50000
 
 ///////////////// Scenarios //////////////////
 enum ScenarioState {
-  STATIC_MOVIE = 1,
-  PLAY_EXPLANATION_MOVIE = 2,
+  STATIC_MOVIE = 0,
+  PLAY_EXPLANATION_MOVIE = 1,
   UNPROTECTED_START = 3,
-  UNPROTECTED_STOP = 4,
-  UNPROTECTED_END = 5,
-  PROTECTED = 6
+  UNPROTECTED_END = 4,
+  PROTECTED = 2
 };
 
-///////////////// Toch Sensor //////////////////
-int pressurePin = A0;
-int touch_force;
 
 
-bool testMode = false;
+
+bool testMode = true;
 
 
 void setup() {
@@ -102,6 +105,39 @@ void setup() {
   digitalWrite(softpotPin, HIGH); //enable pullup resistor
 
 
+ for (int i = TECHNICIAN_TO_PARKING_LED_START; i <= TECHNICIAN_TO_PARKING_LED_END; i++) {
+       leds[i] = CRGB::Red;
+      }
+ FastLED.show();
+
+ for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
+       leds[i] = CRGB::White;
+      }
+
+  for (int i = CAR_TO_TECHNICIAN_LED_START; i <= CAR_TO_TECHNICIAN_LED_END; i++) {
+       leds[i] = CRGB::Blue;
+      }
+
+      for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
+       leds[i] = CRGB::Magenta;
+      }
+
+        for (int i = TECHNICIAN_LED_START; i <= TECHNICIAN_LED_END; i++) {
+       leds[i] = CRGB::Orange;
+      }
+
+       for (int i = ANTENA_TO_CAR_LED_START; i <= ANTENA_TO_CAR_LED_END; i++) {
+       leds[i] = CRGB::Purple;
+      }
+      leds[TREE_1] = CRGB::Green;
+      leds[TREE_2] = CRGB::Green;
+      leds[TREE_3] = CRGB::Green;
+      
+      leds[ANTENA_LED] = CRGB::Blue;
+      leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
+      leds[TOUCH_LEDS_START] = CRGB::Brown;
+      
+ FastLED.show();
 
   radio.begin();
   radio.openWritingPipe(addresses[0]);
@@ -219,8 +255,13 @@ int protectedRunningLEDMaxTime = 12000;
 
 void ProtectedLedLoop(unsigned long secenarioTime) {
   //leds[Car_LED] = CRGB::Green;
-  if (protectedStage == 0 && secenarioTime >= 3000) {
+  if (secenarioTime <= 1000){
+    protectedStage = 0;
+    }
+  if (protectedStage == 0 && secenarioTime >= 12000) {
+    leds_off();
     protectedStage = 1;
+    PrintDebug("Stage Haker");
     //Serial.println("Stage 1");
     for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
       leds[i] = CRGB::Red;
@@ -229,70 +270,113 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
     protectedRunningLEDTime = 0;
     protectedRunningLED = 0;
   }
-  if ((protectedStage == 1 || protectedStage == 2) && secenarioTime >= 6000  && secenarioTime <= 9000) {
-    //leds_off();
+  if (protectedStage == 1 && secenarioTime >= 16000 ) {
+    leds_off();
     protectedStage = 2;
+    PrintDebug("Stage Haker To Antena");
+    leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
+    FastLED.show();
+
+  }
+  if (protectedStage == 2 && secenarioTime >= 20000) {
+    PrintDebug("Stage Antena");
+    leds_off();
+    protectedStage = 3;
+    leds[ANTENA_LED] = CRGB::Red;
+    FastLED.show();
+    protectedRunningLEDTime = 0;
+   // protectedRunningLED = 0;
+    protectedRunningLED = ANTENA_TO_CAR_LED_END;
+  }
+  if ((protectedStage == 4 || protectedStage == 3) && secenarioTime >= 24000 && secenarioTime <= 28000) {
+    //PrintDebug("Stage Antena To Car 4");
+    protectedStage = 4;
     if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
        leds_off();
       protectedRunningLEDTime = 0;
-      if (protectedRunningLED + HACKER_TO_ANTENA_LED_START >= HACKER_TO_ANTENA_LED_END) {
-        protectedRunningLED = 0;
+      protectedRunningLED--;
+      if ( protectedRunningLED < ANTENA_TO_CAR_LED_START) {
+        protectedRunningLED = ANTENA_TO_CAR_LED_END;
       }
-    //  for (int i = HACKER_TO_ANTENA_LED_START; i <= HACKER_TO_ANTENA_LED_END; i++) {
+    //  for (int i = ANTENA_TO_CAR_LED_START; i <= ANTENA_TO_CAR_LED_END; i++) {
     //    leds[i] = CRGB::Black;
-   //   }
-      leds[HACKER_TO_ANTENA_LED_START + protectedRunningLED] = CRGB::Red;
+    //  }
+       PrintDebug("Runing LED");
+       PrintDebug( protectedRunningLED);
+      leds[protectedRunningLED] = CRGB::Red;
       FastLED.show();
-      protectedRunningLED++;
+      
     }
-    protectedRunningLEDTime++;
-
-
-  }
-  if (protectedStage == 2 && secenarioTime >= 9000) {
-    leds_off();
-    protectedRunningLEDTime = 0;
-    protectedRunningLED = 0;
-    protectedStage = 3;
-   // Serial.println("Stage 3");
-    for (int i = ANTENA_LED_START; i <= ANTENA_LED_END; i++) {
-      leds[i] = CRGB::Red;
-    }
-    FastLED.show();
-  }
-  if ((protectedStage == 4 || protectedStage == 3) && secenarioTime >= 12000 && secenarioTime <= 15000) {
-    protectedStage = 4;
-    if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
-      protectedRunningLEDTime = 0;
-      if (protectedRunningLED + ANTENA_TO_CAR_LED_START >= ANTENA_TO_CAR_LED_END) {
-        protectedRunningLED = 0;
-      }
-      for (int i = ANTENA_TO_CAR_LED_START; i <= ANTENA_TO_CAR_LED_END; i++) {
-        leds[i] = CRGB::Black;
-      }
-      leds[ANTENA_TO_CAR_LED_START + protectedRunningLED] = CRGB::Blue;
-      FastLED.show();
-      protectedRunningLED++;
-    }
+    // FastLED.show();
     protectedRunningLEDTime++;
 
 
 
   }
-  if (protectedStage == 4 && secenarioTime >= 15000) {
-    protectedRunningLEDTime = 0;
-    protectedRunningLED = 0;
+  if ((protectedStage == 4 || protectedStage == 5) && secenarioTime >= 32000 && secenarioTime <= 36000) {
     protectedStage = 5;
-   // Serial.println("Stage 3");
-    for (int i = ANTENA_LED_START; i <= ANTENA_LED_END; i++) {
-      leds[i] = CRGB::Blue;
+    if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
+       leds_off();
+      protectedRunningLEDTime = 0;
+      protectedRunningLED--;
+      if ( protectedRunningLED < CAR_TO_TECHNICIAN_LED_START) {
+        protectedRunningLED = CAR_TO_TECHNICIAN_LED_END;
+      }
+  //    for (int i = CAR_TO_TECHNICIAN_LED_START; i <= CAR_TO_TECHNICIAN_LED_END; i++) {
+ //       leds[i] = CRGB::Black;
+   //   }
+       PrintDebug("Runing LED");
+       PrintDebug( protectedRunningLED);
+      leds[protectedRunningLED] = CRGB::Red;
+      FastLED.show();
+      
+    }
+    
+    protectedRunningLEDTime++;
+    
+  }
+  if (protectedStage == 5 && secenarioTime >= 36000) {
+       leds_off();
+    protectedStage = 6;
+    PrintDebug("Stage Technision");
+    //Serial.println("Stage 1");
+    for (int i = TECHNICIAN_LED_START; i <= TECHNICIAN_LED_END; i++) {
+      leds[i] = CRGB::Green;
     }
     FastLED.show();
+    protectedRunningLEDTime = 0;
+    protectedRunningLED = TECHNICIAN_TO_PARKING_LED_END;
+
   }
-  if (protectedStage == 5 && secenarioTime >= 18000) {
+  if ((protectedStage == 6 || protectedStage == 7) && secenarioTime >= 40000 && secenarioTime <= 44000) {
+    protectedStage = 7;
+   // PrintDebug("Technision to parking");
+   if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
+     leds_off();
+      protectedRunningLEDTime = 0;
+      protectedRunningLED--;
+      if ( protectedRunningLED < TECHNICIAN_TO_PARKING_LED_START) {
+        protectedRunningLED = TECHNICIAN_TO_PARKING_LED_END;
+      }
+    //  for (int i = TECHNICIAN_TO_PARKING_LED_START; i <= TECHNICIAN_TO_PARKING_LED_END; i++) {
+    //    leds[i] = CRGB::Black;
+    //  }
+       PrintDebug("Runing LED");
+       PrintDebug( protectedRunningLED);
+      leds[protectedRunningLED] = CRGB::Red;
+      FastLED.show();
+      
+    }
+    
+    protectedRunningLEDTime++;
+
+  }
+   if (protectedStage == 7 && secenarioTime >= 49000) {
+       leds_off();
+    protectedStage = 8;
+    PrintDebug("Stage 6");
     protectedRunningLEDTime = 0;
     protectedRunningLED = 0;
-    protectedStage = 0;
 
   }
 
@@ -303,9 +387,9 @@ int unprotectedRunningLED = 0;
 int unprotectedRunningLEDTime = 0;
 void UnprotectedLedLoop(unsigned long secenarioTime) {
 
-  if (unprotectedStage == 0 && secenarioTime >= 3000) {
+  if (unprotectedStage == 0 && secenarioTime >= 8000) {
     unprotectedStage = 1;
-    Serial.println("Stage 1");
+    PrintDebug("Stage 1");
     for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
       leds[i] = CRGB::Red;
     }
@@ -333,7 +417,7 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   }
   if (unprotectedStage == 2 && secenarioTime >= 12000) {
     unprotectedStage = 3;
-    Serial.println("Stage 3");
+    PrintDebug("Stage 3");
     for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
       leds[i] = CRGB::Blue;
     }
