@@ -62,7 +62,7 @@ void setup() {
   radio.setPALevel(RF24_PA_LOW);
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
- // radio.printDetails();
+  // radio.printDetails();
 
   pinMode(ledG, OUTPUT);
   pinMode(ledR, OUTPUT);
@@ -76,7 +76,7 @@ void setup() {
 
   ledOutputThread.onRun(blinkLeds);
   ledOutputThread.setInterval(0);
-  
+
   controll.add(&ledOutputThread); // & to pass the pointer to it
 }
 bool isDriving = false;
@@ -92,43 +92,44 @@ void loop() {
     int text = 0;
     radio.read(&text, sizeof(text));
     Serial.println(text);
-  //  writeToRadio(text);
+    //  writeToRadio(text);
     handleInput(text);
-    if(!isDriving){
-    driveForward(APHASE, AENBL);
-    isDriving = true;
-    }
-    else{
-      driveStop(APHASE, AENBL);
-      isDriving = false;
-      } 
   }
 }
+
+
 
 void handleInput(int msg) {
   switch (msg) {
     case 1: {
+       digitalWrite(ledG, HIGH);
+        driveForward(APHASE, AENBL);
+        isDriving = true;
         redBlinkNumber = BlinkNumber;
         break;
       }
     case 2: {
+       digitalWrite(ledR, HIGH);
+        driveStop(APHASE, AENBL);
+        isDriving = false;
         blueBlinkNumber = BlinkNumber;
         break;
       }
     case 3: {
-        greenBlinkNumber = BlinkNumber;
+       digitalWrite(ledB, HIGH);
+      
         break;
       }
     case 4: {
-        purpleBlinkNumber = BlinkNumber;
+        digitalWrite(ledB, LOW);
         break;
       }
     case 5: {
-        redBlinkNumber = BlinkNumber;
+         digitalWrite(ledR, LOW);
         break;
       }
     default : {
-        blueBlinkNumber = BlinkNumber;
+      // blueBlinkNumber = BlinkNumber;
         break;
       }
   }
