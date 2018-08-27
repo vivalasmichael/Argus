@@ -58,8 +58,8 @@ void setup() {
   radio.begin();
   radio.openReadingPipe(0, addresses[0]);
   radio.startListening();
-  radio.setAutoAck(false);
-  radio.setPALevel(RF24_PA_LOW);
+  //radio.setAutoAck(false);
+  //radio.setPALevel(RF24_PA_LOW);
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
   // radio.printDetails();
@@ -91,6 +91,7 @@ void loop() {
   {
     int text = 0;
     radio.read(&text, sizeof(text));
+    radio.writeAckPayload(0, text, sizeof(text));
     Serial.println(text);
     //  writeToRadio(text);
     handleInput(text);
