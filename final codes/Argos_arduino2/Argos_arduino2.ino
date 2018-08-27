@@ -242,7 +242,7 @@ void loop() {
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
 
     }
-    PrintDebug("Message Not Recived Fromn PC and we break from timeout");
+   // PrintDebug("Message Not Recived Fromn PC and we break from timeout");
   }// first button if
 
   // second button if (UNPROTECTED)
@@ -552,7 +552,7 @@ int startTimer  = 5000;
 // callback for inputButtonThread
 void chackInputButtons() {
   touch_force = analogRead(pressurePin);
-  Serial.println(touch_force);
+  //Serial.println(touch_force);
   //delay(300);
   /// Normal Mode
   /// will only send messages when buttons are pressed
