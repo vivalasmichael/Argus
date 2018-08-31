@@ -106,27 +106,28 @@ void handleInput(int msg) {
        digitalWrite(ledG, HIGH);
         driveForward(APHASE, AENBL);
         isDriving = true;
-        redBlinkNumber = BlinkNumber;
         break;
       }
     case 2: {
-       digitalWrite(ledR, HIGH);
+       digitalWrite(ledB, HIGH);
         driveStop(APHASE, AENBL);
         isDriving = false;
-        blueBlinkNumber = BlinkNumber;
         break;
       }
     case 3: {
        digitalWrite(ledB, HIGH);
+       digitalWrite(ledG, HIGH);
       
         break;
       }
     case 4: {
         digitalWrite(ledB, LOW);
+        digitalWrite(ledG, LOW);
+        digitalWrite(ledR, LOW);
         break;
       }
     case 5: {
-         digitalWrite(ledR, LOW);
+         digitalWrite(ledG, HIGH);
         break;
       }
     default : {

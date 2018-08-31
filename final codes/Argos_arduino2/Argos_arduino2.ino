@@ -552,7 +552,7 @@ int startTimer  = 5000;
 // callback for inputButtonThread
 void chackInputButtons() {
   touch_force = analogRead(pressurePin);
-  Serial.println(touch_force);
+  //Serial.println(touch_force);
   //delay(300);
   /// Normal Mode
   /// will only send messages when buttons are pressed
