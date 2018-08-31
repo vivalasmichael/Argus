@@ -76,23 +76,29 @@ public class MainApp : MonoBehaviour
         if (secondsCount >= 2 && state == 0) {
             state = 1;
             Debug.Log("UnprotectedStartMovie");
-            video.GlobalVid.SetVideo(VideoType.UnprotectedStartMovie, true);
+            video.GlobalVid.SetVideo(VideoType.ExplanationMovie);
         }
         if (secondsCount >= 40 && state == 1)
         {
             state = 2;
             Debug.Log("ProtectedMovie");
-            video.GlobalVid.SetVideo(VideoType.ProtectedMovie, true);
+            video.GlobalVid.SetVideo(VideoType.ProtectedMovie);
         }
         if (secondsCount >= 60 && state == 2)
         {
             state = 3;
             Debug.Log("ExplanationMovie");
-            video.GlobalVid.SetVideo(VideoType.UnprotectedStartMovie, true);
+            video.GlobalVid.SetVideo(VideoType.UnprotectedStartMovie);
+        }
+        if (secondsCount >= 120 && state == 3)
+        {
+            state = 4;
+            Debug.Log("ExplanationMovie");
+            video.GlobalVid.SetVideo(VideoType.ExplanationMovie);
         }
         if (wasVideoActivated) {
             wasVideoActivated = false;
-            video.GlobalVid.SetVideo(newVid,true);
+            video.GlobalVid.SetVideo(newVid);
             
         }
         

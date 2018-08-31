@@ -242,7 +242,7 @@ void loop() {
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
 
     }
-   // PrintDebug("Message Not Recived Fromn PC and we break from timeout");
+    PrintDebug("Message Not Recived Fromn PC and we break from timeout");
   }// first button if
 
   // second button if (UNPROTECTED)
