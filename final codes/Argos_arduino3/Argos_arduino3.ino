@@ -7,11 +7,11 @@
 #include <RF24.h>
 
 /// Motor Vars
-int MODE = 2;
-int APHASE = 4;
-int AENBL = 5;
+int MODE = 8;
+int APHASE = 9;
+int AENBL = 10;
 // motor speed is any number between 0 and 255
-int MotorSpeed = 50;
+int MotorSpeed = 250;
 
 /// Leds public variables
 int carLedG = 11;
@@ -146,6 +146,7 @@ void setup() {
   controll.add(&buttonListenThread);
 
   TestLeds();
+  // driveForward(APHASE, AENBL);
 }
 
 
@@ -182,7 +183,7 @@ void loop() {
 
   // second button if (UNPROTECTED)
   if (wasButton2Pressed) {
-    
+
     // writeToRadio(2);
     wasButton2Pressed = false;
     PrintDebug("Button 2 pressed");
@@ -248,13 +249,14 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
   if (secenarioTime <= 1000) {
     protectedStage = 0;
   }
-  if (protectedStage == 0 && secenarioTime <= 8000) {
+  if (protectedStage == 0 && secenarioTime >= 8000) {
+    PrintDebug("Car starts");
     digitalWrite(carLedG, HIGH);
     driveForward(APHASE, AENBL);
     protectedStage = 1;
   }
   if (protectedStage == 1 && secenarioTime >= 12000) {
-    digitalWrite(carLedG, LOW);
+    // digitalWrite(carLedG, LOW);
     driveStop(APHASE, AENBL);
     leds_off();
     protectedStage = 2;
@@ -287,6 +289,8 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
   }
   if ((protectedStage == 5 || protectedStage == 4) && secenarioTime >= 24000 && secenarioTime <= 28000) {
     //PrintDebug("Stage Antena To Car 4");
+
+    //digitalWrite(carLedR, HIGH);
     protectedStage = 5;
     if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
       leds_off();
@@ -341,6 +345,7 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
 
   }
   if ((protectedStage == 8 || protectedStage == 7) && secenarioTime >= 40000 && secenarioTime <= 44000) {
+    digitalWrite(carLedG, LOW);
     protectedStage = 8;
     // PrintDebug("Technision to parking");
     if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
@@ -363,6 +368,7 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
   if (protectedStage == 8 && secenarioTime >= 44000) {
     leds_off();
     protectedStage = 9;
+    driveForward(APHASE, AENBL);
     PrintDebug("Stage Parkin Lot");
     for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
       leds[i] = CRGB::Green;
@@ -371,6 +377,8 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
 
   }
   if (protectedStage == 9 && secenarioTime >= 49000) {
+    driveStop(APHASE, AENBL);
+    digitalWrite(carLedG, LOW);
     leds_off();
     protectedStage = 10;
     PrintDebug("Stage 6");
@@ -392,10 +400,13 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   if (unprotectedStage == 0 && secenarioTime >= 4000) {
     unprotectedStage = 1;
     PrintDebug("Stage 1");
-    /// Car Moving
+
   }
 
   if (unprotectedStage == 1 && secenarioTime >= 8000) {
+        /// Car Moving
+    driveForward(APHASE, AENBL);
+        digitalWrite(carLedG, HIGH);
     leds_off();
     unprotectedStage = 2;
     PrintDebug("Stage 2");
@@ -405,6 +416,8 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
     FastLED.show();
   }
   if (unprotectedStage == 2  && secenarioTime >= 12000) {
+        // digitalWrite(carLedG, LOW);
+    driveStop(APHASE, AENBL);
     leds_off();
     unprotectedStage = 3;
     leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
@@ -419,6 +432,8 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   }
   if ((unprotectedStage == 4 || unprotectedStage == 5) && secenarioTime >= 20000 && secenarioTime <= 24000) {
     //PrintDebug("Stage Antena To Car 4");
+    digitalWrite(carLedR, HIGH);
+    digitalWrite(carLedG, LOW);
     unprotectedStage = 4;
     if (unprotectedRunningLEDTime >= unprotectedRunningLEDMaxTime) {
       leds_off();
