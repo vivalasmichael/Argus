@@ -14,6 +14,7 @@ const byte addresses[][6] = {"00001", "00002"};
 ThreadController controll = ThreadController();
 Thread radioListenerThread = Thread();
 Thread buttonListenThread = Thread();
+Thread rf24Sender = Thread();
 
 /// buttons public variables
 const int button1Pin = 7;
@@ -142,8 +143,8 @@ void setup() {
   radio.begin();
   radio.openWritingPipe(addresses[0]);
   radio.stopListening();
-  radio.setAutoAck(false);
-  radio.setPALevel(RF24_PA_LOW);
+  //radio.setAutoAck(false);
+  //radio.setPALevel(RF24_PA_LOW);
   PrintDebug("is Chip Connected = " );
   PrintDebug(radio.isChipConnected());
   //radio.printDetails();
@@ -151,13 +152,16 @@ void setup() {
   // radioListenerThread.onRun(chackRadioForInput);
   //radioListenerThread.setInterval(50);
 
+  rf24Sender.onRun(SendRfWhenPossible);
+  rf24Sender.setInterval(0);
+
   buttonListenThread.onRun(chackInputButtons);
   buttonListenThread.setInterval(0);
 
 
 
   // Adds both threads to the controller
-  //controll.add(&radioListenerThread);
+  controll.add(&rf24Sender);
   controll.add(&buttonListenThread);
 }
 
@@ -180,6 +184,47 @@ void sendMsgToRadio(int msg) {
   radio.write(&msg, sizeof(msg));
   //delay(100);
 }
+const int caMaxResend = 100;
+int caResendLeft = 0;
+uint32_t globalMessege = 0;
+bool outMessageAvilable = false;
+void writeToRadio(int messege) {
+  Serial.println("--------------------------------------");
+  Serial.println("Sending Message");
+  radio.openWritingPipe(addresses[0]);
+  radio.stopListening();
+  bool writeRslt = radio.write(&messege, sizeof(messege));
+
+  if (!writeRslt) {
+    if (caResendLeft > 0) {
+      Serial.print("Ack Not Recived -> resending for time : ");
+      Serial.println(caResendLeft);
+      Serial.print("Waiting For : ");
+    //  Serial.println(randBackoff);
+      //delay(randBackoff);
+      outMessageAvilable = true;
+      caResendLeft--;
+    } else {
+      outMessageAvilable = false;
+      Serial.println("Ack Not Recived 20 times Msg Failed");
+    //  ReturnToListen();
+    }
+
+  } else {
+    outMessageAvilable = false;
+    Serial.println("Ack Recived");
+   // ReturnToListen();
+    Serial.println(messege);
+  }
+}
+
+void SendRfWhenPossible() {
+  if (outMessageAvilable) {
+    writeToRadio(globalMessege);
+  }
+}
+
+
 
 
 
@@ -189,7 +234,7 @@ void loop() {
   //leds_off();
   // first button (PLAY_EXPLANATION_MOVIE)
   if (wasButton1Pressed) {
-    sendMsgToRadio(1);
+    writeToRadio(1);
     wasButton1Pressed = false;
     PrintDebug("Button 1 pressed");
     Serial.println(PLAY_EXPLANATION_MOVIE);
@@ -202,7 +247,7 @@ void loop() {
 
   // second button if (UNPROTECTED)
   if (wasButton2Pressed) {
-    sendMsgToRadio(2);
+    writeToRadio(2);
     wasButton2Pressed = false;
     PrintDebug("Button 2 pressed");
     Serial.println(UNPROTECTED_START);
@@ -225,7 +270,7 @@ void loop() {
         }
       }
     leds_off();
-    sendMsgToRadio(3);
+    writeToRadio(3);
     PrintDebug("UNPROTECTED_END");
     Serial.println(UNPROTECTED_END);
 
@@ -241,7 +286,7 @@ void loop() {
   // third button if (PROTECTED)
   if (wasButton3Pressed) {
     wasButton3Pressed = false;
-    sendMsgToRadio(4);
+    writeToRadio(4);
 
     PrintDebug("Button 3 pressed");
     Serial.println(PROTECTED);
@@ -507,7 +552,7 @@ int startTimer  = 5000;
 // callback for inputButtonThread
 void chackInputButtons() {
   touch_force = analogRead(pressurePin);
-  Serial.println(touch_force);
+  //Serial.println(touch_force);
   //delay(300);
   /// Normal Mode
   /// will only send messages when buttons are pressed

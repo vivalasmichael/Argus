@@ -58,8 +58,8 @@ void setup() {
   radio.begin();
   radio.openReadingPipe(0, addresses[0]);
   radio.startListening();
-  radio.setAutoAck(false);
-  radio.setPALevel(RF24_PA_LOW);
+  //radio.setAutoAck(false);
+  //radio.setPALevel(RF24_PA_LOW);
   Serial.print("is Chip Connected = " );
   Serial.println(radio.isChipConnected());
   // radio.printDetails();
@@ -91,6 +91,7 @@ void loop() {
   {
     int text = 0;
     radio.read(&text, sizeof(text));
+    radio.writeAckPayload(0, text, sizeof(text));
     Serial.println(text);
     //  writeToRadio(text);
     handleInput(text);
@@ -105,27 +106,28 @@ void handleInput(int msg) {
        digitalWrite(ledG, HIGH);
         driveForward(APHASE, AENBL);
         isDriving = true;
-        redBlinkNumber = BlinkNumber;
         break;
       }
     case 2: {
-       digitalWrite(ledR, HIGH);
+       digitalWrite(ledB, HIGH);
         driveStop(APHASE, AENBL);
         isDriving = false;
-        blueBlinkNumber = BlinkNumber;
         break;
       }
     case 3: {
        digitalWrite(ledB, HIGH);
+       digitalWrite(ledG, HIGH);
       
         break;
       }
     case 4: {
         digitalWrite(ledB, LOW);
+        digitalWrite(ledG, LOW);
+        digitalWrite(ledR, LOW);
         break;
       }
     case 5: {
-         digitalWrite(ledR, LOW);
+         digitalWrite(ledG, HIGH);
         break;
       }
     default : {

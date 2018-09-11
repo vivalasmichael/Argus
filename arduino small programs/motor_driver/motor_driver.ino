@@ -1,12 +1,12 @@
 //pins declaration
-int MODE = 2;
-int APHASE = 4;
-int AENBL = 5;
+int MODE = 8;
+int APHASE = 9;
+int AENBL = 10;
 int redPin= 3;
 int greenPin = 6;
 int bluePin = 7;
 // motor speed is any number between 0 and 255
-int MotorSpeed = 50;
+int MotorSpeed = 254;
 
 void setup() {
   pinMode(MODE, OUTPUT);
@@ -20,23 +20,23 @@ void setup() {
 }
 
 void loop() {
-  forward(APHASE, AENBL); //move M1 forward
+  reverse(APHASE, AENBL); //move M1 forward
   setColor(255, 0, 0); // Red Color
   Serial.println("Motor M1 is moving forward");
   delay(2000); //delay for 2 seconds
-  reverse(APHASE, AENBL); //move M1 reverse
+  //reverse(APHASE, AENBL); //move M1 reverse
   setColor(0, 255, 0); // Green Color
   Serial.println("Motor M1 is moving reverse"); //display message in serial monitor
   delay(2000); //delay for 2 seconds
 }
 
 void forward(int Phase, int Enable) {
-  digitalWrite(Phase, LOW);
+  digitalWrite(Phase, HIGH);
   analogWrite(Enable, MotorSpeed);
 }
 
 void reverse(int Phase, int Enable) {
-  digitalWrite(Phase, HIGH);
+  digitalWrite(Phase, LOW);
   analogWrite(Enable, MotorSpeed);
 }
 void setColor(int redValue, int greenValue, int blueValue) {

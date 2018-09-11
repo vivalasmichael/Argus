@@ -12,170 +12,173 @@ public enum VideoType
     UprotectedEndMovie = 4
 };
 
-public class video : MonoBehaviour {
-    public VideoPlayer videoPlayer;
-    public VideoSource videoSource;
+public class video : MonoBehaviour
+{
+    public List<VideoPlayer> videoPlayer;
+
     public List<VideoClip> videosToPlay;
     //Audio
     public AudioSource audioSource;
+    public VideoSource videoSource;
 
     public static video GlobalVid;
-    public Coroutine runningVido;
+    public List<Coroutine> runningVido;
 
-
+    public int moviePlaying = -1;
 
     void Start()
     {
+        runningVido = new List<Coroutine>();
         GlobalVid = this;
+        for (int i = 0; i < 5; i++)
+        {
+
+            StartCoroutine(PreparVideo(i));
+
+        }
+
+    }
+
+    public IEnumerator PreparVideo(int i)
+    {
         //Application.runInBackground = true;
         //Disable Play on Awake for both Video and Audio
-        videoPlayer.playOnAwake = false;
+        videoPlayer[i].playOnAwake = false;
         audioSource.playOnAwake = false;
 
         //We want to play from video clip not from url
-        videoPlayer.source = VideoSource.VideoClip;
+        videoPlayer[i].source = VideoSource.VideoClip;
 
         //Set Audio Output to AudioSource
-        videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
+        videoPlayer[i].audioOutputMode = VideoAudioOutputMode.AudioSource;
 
         //Assign the Audio from Video to AudioSource to be played
-        videoPlayer.EnableAudioTrack(0, true);
-        videoPlayer.SetTargetAudioSource(0, audioSource);
-    }
+        videoPlayer[i].EnableAudioTrack(0, true);
+        videoPlayer[i].SetTargetAudioSource(0, audioSource);
 
-    public void SetVideo(VideoType v, bool fade) {
-        
-        if (runningVido != null)
-        {
-            if (videoPlayer.isPlaying)
-            {
-                if (fade)
-                {
-                    StartCoroutine(fadeoutVideo(v));
-                }
-                else {
-                    RunMovie(v);
-
-                }
-                
-            }
-        }
-        else {
-            RunMovie(v);
-        }
-
-    }
-
-    void RunMovie(VideoType v) {
-        if(runningVido != null)
-        {
-           // videoPlayer.isLooping = false;
-            StopCoroutine(runningVido);
-        }
-        videoPlayer.Stop();
-        runningVido = StartCoroutine(playVideo(v));
-    }
-
-    bool fadeoutDone = false;
-    public IEnumerator fadeoutVideo(VideoType v) {
-
-        float a = 1.0f;
-        while ( a >= 0f) {
-            float colo = videoPlayer.targetCameraAlpha;
-            colo = a;
-            videoPlayer.targetCameraAlpha = colo;
-            a -= Time.deltaTime;
-            yield return null;
-        }
-
-
-        if (a <= 0.0f)
-        {
-            
-            RunMovie(v);
-        }
-        
-
-
-    }
-
-
-
-    public IEnumerator playVideo(VideoType vid) {
-        Debug.Log(vid + " movie #" +(int)vid + " played");
-        
         //Set video To Play then prepare Audio to prevent Buffering
-        videoPlayer.clip = videosToPlay[(int)vid];
-        videoPlayer.Prepare();
+        videoPlayer[i].clip = videosToPlay[i];
+        videoPlayer[i].Prepare();
 
         //Wait until video is prepared
-        while (!videoPlayer.isPrepared)
+        while (!videoPlayer[i].isPrepared)
         {
-           // Debug.Log("Preparing Video");
+
             yield return null;
         }
-
+        videoPlayer[i].targetCameraAlpha = 0f;
+        Debug.Log("Prepared Video " + i);
         //   Debug.Log("Done Preparing Video");
         // Skip the first 100 frames.
         //  videoPlayer.frame = 1700;
-        videoPlayer.isLooping = true;
+        //   videoPlayer[i].isLooping = true;
         /// Static Replay Movie No activity
-        if (vid == VideoType.NotActiveMovie)
+
+        if (i == (int)VideoType.NotActiveMovie)
         {
             // Restart from beginning when done.
-           // videoPlayer.isLooping = true;
+            videoPlayer[i].isLooping = true;
         }
         /// Static Replay Movie ransom  
-        else if (vid == VideoType.UnprotectedStartMovie)
+        else if (i == (int)VideoType.UnprotectedStartMovie)
         {
             // Restart from beginning when done.
-            videoPlayer.loopPointReached += VideoRansomStartMovie;
+            videoPlayer[i].loopPointReached += VideoRansomStartMovie;
         }
-        else if (vid == VideoType.UprotectedEndMovie)
+        else if (i == (int)VideoType.UprotectedEndMovie)
         {
             // Restart from beginning when done.
-            
-            videoPlayer.loopPointReached += VideoRansomReplayReached;
-           // videoPlayer.isLooping = true;
+            videoPlayer[i].loopPointReached += VideoRansomReplayReached;
+            // videoPlayer.isLooping = true;
         }
-        else if (vid == VideoType.ProtectedMovie || vid == VideoType.ExplanationMovie)
+        else if (i == (int)VideoType.ProtectedMovie)
         {
             // Restart from beginning when done.
-            videoPlayer.loopPointReached += VideoEndReached;
+            videoPlayer[i].loopPointReached += VideoEndReachedProtected;
+        }
+        else if (i == (int)VideoType.ExplanationMovie)
+        {
+            // Restart from beginning when done.
+            videoPlayer[i].loopPointReached += VideoEndReachedExplanation;
+        }
+
+
+    }
+
+
+    public void SetVideo(VideoType v)
+    {
+        if (moviePlaying != -1)
+        {
+            StartCoroutine(fadeoutVideo((VideoType)moviePlaying));
+        }
+        Coroutine rot = StartCoroutine(playVideo(v));
+        moviePlaying = (int)v;
+
+        // runningVido[(int)v] = rot;
+    }
+
+    bool fadeoutDone = false;
+    public IEnumerator fadeoutVideo(VideoType v)
+    {
+        Debug.Log((int)v + " movie #" + (int)v + " faiding");
+        float a = 1.0f;
+        while (a >= 0f)
+        {
+            float colo = videoPlayer[(int)v].targetCameraAlpha;
+            colo = a;
+            videoPlayer[(int)v].targetCameraAlpha = colo;
+            a -= Time.deltaTime * 2;
+            yield return null;
+        }
+        videoPlayer[(int)v].targetCameraAlpha = 0f;
+        //  videoPlayer[(int)v].stop();
+        videoPlayer[(int)v].Pause();
+        audioSource.Pause();
+
+
+    }
+
+
+
+    public IEnumerator playVideo(VideoType vid)
+    {
+        Debug.Log(vid + " movie #" + (int)vid + " played");
+        videoPlayer[(int)vid].frame = 0;
+        while (!videoPlayer[(int)vid].isPrepared)
+        {
+            yield return null;
         }
 
         //Play Video
-        videoPlayer.Play();
+        videoPlayer[(int)vid].Play();
 
         //Play Sound
         audioSource.Play();
-       // videoPlayer.targetCameraAlpha = 1f;
+        // videoPlayer.targetCameraAlpha = 1f;
         //  Debug.Log("Playing Video");
-        while (videoPlayer.isPlaying)
+        while (videoPlayer[(int)vid].isPlaying)
         {
-            if (videoPlayer.targetCameraAlpha <= 1f) {
-                float a = videoPlayer.targetCameraAlpha;
-                a += Time.deltaTime;
-                videoPlayer.targetCameraAlpha = a;
-                if (a >= 0.99) {
-                    videoPlayer.targetCameraAlpha = 1f;
-                }
-                
-               // yield return null;
-            }
-            
-            if (Mathf.FloorToInt((float)videoPlayer.time) >= 10)
+            if (videoPlayer[(int)vid].targetCameraAlpha <= 1f)
             {
-                if (!testRun)
+                float a = videoPlayer[(int)vid].targetCameraAlpha;
+                a += Time.deltaTime * 2;
+                videoPlayer[(int)vid].targetCameraAlpha = a;
+                if (a >= 0.99)
                 {
-                   // testRun = true;
-                   // Debug.Log("Started Video");
-                   // SetVideo(1);
+                    videoPlayer[(int)vid].targetCameraAlpha = 1f;
                 }
-                
 
+                // yield return null;
             }
-           // Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer.time));
+
+            if (Mathf.FloorToInt((float)videoPlayer[(int)vid].time) >= 10)
+            {
+
+                //Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer[(int)vid].time));
+            }
+
+
             yield return null;
         }
 
@@ -183,17 +186,23 @@ public class video : MonoBehaviour {
         //videoPlayer.Stop();
     }
 
-    bool testRun = false;
-    
-    public void VideoEndReached(VideoPlayer vp) {
+ 
 
+    public void VideoEndReachedExplanation(VideoPlayer vp)
+    {
         Debug.Log("end point normal reached");
-        SetVideo(VideoType.NotActiveMovie,true);
+        SetVideo(VideoType.NotActiveMovie);
+
+    }
+    public void VideoEndReachedProtected(VideoPlayer vp)
+    {
+        Debug.Log("end point normal reached");
+        SetVideo(VideoType.NotActiveMovie);
 
     }
 
     int ransomMovieTimesPlayed = 1;
-    int ransomMovieMaxTimesPlayed = 2;
+    int ransomMovieMaxTimesPlayed = 1;
 
     public void VideoRansomReplayReached(VideoPlayer vp)
     {
@@ -201,21 +210,23 @@ public class video : MonoBehaviour {
         {
             ransomMovieTimesPlayed = 0;
             Debug.Log("end point Ransom reached at max times and starting inactive loop");
-            SetVideo(VideoType.NotActiveMovie, true);
+            SetVideo(VideoType.NotActiveMovie);
         }
-        else {
-           // SetVideo(VideoType.UprotectedEndMovie, false);
+        else
+        {
+            SetVideo(VideoType.UprotectedEndMovie);
             Debug.Log("end point Ransom reached at times : " + ransomMovieTimesPlayed);
             ransomMovieTimesPlayed++;
         }
-        
+
 
     }
 
     public void VideoRansomStartMovie(VideoPlayer vp)
     {
+
         Debug.Log("end point unprotected reached");
-        SetVideo(VideoType.UprotectedEndMovie,false);
+        SetVideo(VideoType.UprotectedEndMovie);
     }
 
 

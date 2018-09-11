@@ -10,10 +10,13 @@ public class MainApp : MonoBehaviour
     private Thread _t1;
     SerialPort stram = new SerialPort("COM4",9600);
     SerialDataReceivedEventHandler handler;
-    
+    float secondsCount;
+
+
     // Use this for initialization
     void Start () {
-        video.GlobalVid.SetVideo(VideoType.NotActiveMovie,true);
+       
+     
         OpenSerial();
     }
 
@@ -64,13 +67,38 @@ public class MainApp : MonoBehaviour
 
     bool wasVideoActivated = false;
     public VideoType newVid = VideoType.NotActiveMovie;
-  
 
+    int state = 0;
     private void Update()
     {
+      //  Debug.Log("secondsCount =  " + secondsCount);
+        secondsCount += Time.deltaTime;
+        if (secondsCount >= 2 && state == 0) {
+            state = 1;
+            Debug.Log("UnprotectedStartMovie");
+            video.GlobalVid.SetVideo(VideoType.ExplanationMovie);
+        }
+        if (secondsCount >= 40 && state == 1)
+        {
+            state = 2;
+            Debug.Log("ProtectedMovie");
+            video.GlobalVid.SetVideo(VideoType.ProtectedMovie);
+        }
+        if (secondsCount >= 60 && state == 2)
+        {
+            state = 3;
+            Debug.Log("ExplanationMovie");
+            video.GlobalVid.SetVideo(VideoType.UnprotectedStartMovie);
+        }
+        if (secondsCount >= 120 && state == 3)
+        {
+            state = 4;
+            Debug.Log("ExplanationMovie");
+            video.GlobalVid.SetVideo(VideoType.ExplanationMovie);
+        }
         if (wasVideoActivated) {
             wasVideoActivated = false;
-            video.GlobalVid.SetVideo(newVid,true);
+            video.GlobalVid.SetVideo(newVid);
             
         }
         
