@@ -8,7 +8,17 @@ int bluePin = 7;
 // motor speed is any number between 0 and 255
 int MotorSpeed = 254;
 
+// defines pins numbers
+const int trigPin = 3;
+const int echoPin = 4;
+
+// defines variables
+long duration;
+int distance;
+
 void setup() {
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   pinMode(MODE, OUTPUT);
   pinMode(APHASE, OUTPUT);
   pinMode(AENBL, OUTPUT);
@@ -17,17 +27,38 @@ void setup() {
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+   forward(APHASE, AENBL); //move M1 forward
 }
 
 void loop() {
-  reverse(APHASE, AENBL); //move M1 forward
-  setColor(255, 0, 0); // Red Color
-  Serial.println("Motor M1 is moving forward");
-  delay(2000); //delay for 2 seconds
+ 
+ // setColor(255, 0, 0); // Red Color
+  //Serial.println("Motor M1 is moving forward");
+ // delay(2000); //delay for 2 seconds
   //reverse(APHASE, AENBL); //move M1 reverse
-  setColor(0, 255, 0); // Green Color
-  Serial.println("Motor M1 is moving reverse"); //display message in serial monitor
-  delay(2000); //delay for 2 seconds
+ // setColor(0, 255, 0); // Green Color
+ // Serial.println("Motor M1 is moving reverse"); //display message in serial monitor
+  //delay(2000); //delay for 2 seconds
+
+  // Clears the trigPin
+digitalWrite(trigPin, LOW);
+delayMicroseconds(2);
+
+// Sets the trigPin on HIGH state for 10 micro seconds
+digitalWrite(trigPin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigPin, LOW);
+
+// Reads the echoPin, returns the sound wave travel time in microseconds
+duration = pulseIn(echoPin, HIGH);
+
+// Calculating the distance
+distance= duration*0.034/2;
+
+// Prints the distance on the Serial Monitor
+Serial.print("Distance: ");
+Serial.println(distance);
+delay(100);
 }
 
 void forward(int Phase, int Enable) {

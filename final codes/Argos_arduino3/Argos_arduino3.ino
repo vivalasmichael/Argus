@@ -109,6 +109,15 @@ void driveStop(int Phase, int Enable) {
   analogWrite(Enable, 0);
 }
 
+// defines pins numbers
+const int trigPin = 3;
+const int echoPin = 4;
+
+// defines variables
+long duration;
+int distance;
+
+
 bool testMode = true;
 
 void setup() {
@@ -126,6 +135,9 @@ void setup() {
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
   digitalWrite(softpotPin, HIGH); //enable pullup resistor
+
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
 
   /// Motor
   pinMode(MODE, OUTPUT);
@@ -314,7 +326,7 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
     }
 
     if (secenarioTime >= 26800) {
-            leds_off();
+      leds_off();
     }
     // FastLED.show();
     protectedRunningLEDTime++;
@@ -371,7 +383,7 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
       PrintDebug("Runing LED");
       PrintDebug( protectedRunningLED);
       leds[protectedRunningLED] = CRGB::Green;
-       leds[protectedRunningLED + 1] = CRGB::Green;
+      leds[protectedRunningLED + 1] = CRGB::Green;
       FastLED.show();
 
     }
@@ -458,9 +470,9 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
       unprotectedRunningLED--;
       if ( unprotectedRunningLED < ANTENA_TO_CAR_LED_START) {
         unprotectedRunningLED = ANTENA_TO_CAR_LED_END;
-      }else{
-        
-        }
+      } else {
+
+      }
 
       PrintDebug("Runing LED");
       PrintDebug( protectedRunningLED);
@@ -469,9 +481,9 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
       FastLED.show();
 
     }
-       if (secenarioTime >= 19800){
+    if (secenarioTime >= 19800) {
       leds_off();
-      }
+    }
     // FastLED.show();
     unprotectedRunningLEDTime++;
   }
@@ -509,7 +521,7 @@ void UnprotectedKidnapLedLoop(unsigned long secenarioTime) {
   }
 
   if (unprotectedKidnapStage == 1 && secenarioTime >= 8000) {
- unprotectedKidnapStage = 2;
+    unprotectedKidnapStage = 2;
 
   }
   if (unprotectedKidnapStage == 2 && secenarioTime >= 49000) {
@@ -532,19 +544,19 @@ void UnprotectedEndLedLoop(unsigned long secenarioTime) {
   if (secenarioTime <= 1000) {
     leds_off();
     PrintDebug("Unprotected End Stage 1");
-     driveReverse(APHASE, AENBL);
-   // unprotectedEndStage = 0;
-   // leds[TOUCH_LED] = CRGB::Red;
-   // FastLED.show();
+    driveReverse(APHASE, AENBL);
+    // unprotectedEndStage = 0;
+    // leds[TOUCH_LED] = CRGB::Red;
+    // FastLED.show();
   }
   if (unprotectedEndStage == 0 && secenarioTime >= 8000) {
     driveStop(APHASE, AENBL);
     unprotectedEndStage = 1;
-    
+
   }
 
   if (unprotectedEndStage == 1 && secenarioTime >= 12000) {
-unprotectedEndStage = 2;
+    unprotectedEndStage = 2;
 
   }
   if (unprotectedEndStage == 2 && secenarioTime >= 49000) {
@@ -565,10 +577,32 @@ void leds_off() {
   }
 }
 
+void chackDistance(){
+   digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+
+  // Calculating the distance
+  distance = duration * 0.034 / 2;
+
+  // Prints the distance on the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  }
 
 int startTimer  = 5000;
 // callback for inputButtonThread
 void chackInputButtons() {
+ 
+
   //touch_force = analogRead(pressurePin);
   //Serial.println(touch_force);
   //delay(300);
