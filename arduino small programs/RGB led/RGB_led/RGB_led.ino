@@ -3,7 +3,7 @@ Adafruit Arduino - Lesson 3. RGB LED
 */
 
 int redPin = 11;
-int greenPin = 10;
+int greenPin = 12;
 int bluePin = 9;
 
 //uncomment this line if using a Common Anode LED

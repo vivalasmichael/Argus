@@ -11,7 +11,7 @@ int MODE = 8;
 int APHASE = 9;
 int AENBL = 10;
 // motor speed is any number between 0 and 255
-int MotorSpeed = 250;
+int MotorSpeed = 254;
 
 /// Leds public variables
 int carLedG = 11;
@@ -22,9 +22,9 @@ ThreadController controll = ThreadController();
 Thread radioListenerThread = Thread();
 Thread buttonListenThread = Thread();
 Thread rf24Sender = Thread();
-
+// 762
 /// buttons public variables
-const int button1Pin = 7;
+const int button1Pin = 2;
 int button1State = 0;
 int button1Timer = 0;
 bool wasButton1Pressed = false;
@@ -32,7 +32,7 @@ const int button2Pin = 6;
 int button2State = 0;
 int button2Timer = 0;
 bool wasButton2Pressed = false;
-const int button3Pin = 2;
+const int button3Pin = 7;
 int button3State = 0;
 int button3Timer = 0;
 bool wasButton3Pressed = false;
@@ -173,6 +173,7 @@ void loop() {
     // writeToRadio(1);
     wasButton1Pressed = false;
     PrintDebug("Button 1 pressed");
+    PrintDebug("About Argus Movie");
     Serial.println(PLAY_EXPLANATION_MOVIE);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_FOR_EXPLANATION_MOVIE) {
@@ -187,6 +188,7 @@ void loop() {
     // writeToRadio(2);
     wasButton2Pressed = false;
     PrintDebug("Button 2 pressed");
+    PrintDebug("Unprotected Stage");
     Serial.println(UNPROTECTED_START);
     /////////////////// start servo ////////////////////////
 
@@ -199,7 +201,7 @@ void loop() {
     driveStop(APHASE, AENBL);
     ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
     //while ( millis() - startedAtInternal < TIME_LIMIT_FOR_TOUCH) {
-
+    PrintDebug("Unprotected Ask Ransom");
     while (analogRead(pressurePin) < 1000 && millis() - startedAtInternal < TIME_LIMIT_FOR_TOUCH) {
       //  PrintDebug("----------------------");
       UnprotectedKidnapLedLoop(millis() - startedAtInternal);
@@ -207,17 +209,19 @@ void loop() {
         //PrintDebug("analogRead(pressurePin) < 100");
       }
     }
+    PrintDebug("Unprotected Ransom Given");
     leds_off();
     //  writeToRadio(3);
-    PrintDebug("UNPROTECTED_END");
-    Serial.println(UNPROTECTED_END);
 
+    Serial.println(UNPROTECTED_END);
+    PrintDebug("Unprotected senerio End Movie");
     unsigned long startedAtInternal2 = millis();
     while (millis() - startedAtInternal2 < TIME_FOR_SECOND_MOVIE_UNPROTECTED) {
       ////////////// start servo //////////////////
+      UnprotectedEndLedLoop(millis() - startedAtInternal);
     }
     leds_off();
-
+    PrintDebug("Unprotected End ");
 
 
   } // second button if
@@ -227,12 +231,14 @@ void loop() {
     //  writeToRadio(4);
 
     PrintDebug("Button 3 pressed");
+    PrintDebug("Protected senerio Start");
     Serial.println(PROTECTED);
     unsigned long startedAt = millis();
     while (millis() - startedAt < TIME_PROTECTED_MOVIE) {
       /////////////////// start servo ////////////////////////
       ProtectedLedLoop(millis() - startedAt);
     }
+    PrintDebug("Protected senerio Start");
     leds_off();
   }// third button if
 
@@ -252,7 +258,7 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
   if (protectedStage == 0 && secenarioTime >= 8000) {
     PrintDebug("Car starts");
     digitalWrite(carLedG, HIGH);
-    driveForward(APHASE, AENBL);
+    driveReverse(APHASE, AENBL);
     protectedStage = 1;
   }
   if (protectedStage == 1 && secenarioTime >= 12000) {
@@ -306,6 +312,10 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
       FastLED.show();
 
     }
+
+    if (secenarioTime >= 26800) {
+            leds_off();
+    }
     // FastLED.show();
     protectedRunningLEDTime++;
 
@@ -324,10 +334,13 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
       PrintDebug("Runing LED");
       PrintDebug( protectedRunningLED);
       leds[protectedRunningLED] = CRGB::Red;
+      leds[protectedRunningLED + 1] = CRGB::Red;
       FastLED.show();
 
     }
-
+    if (secenarioTime >= 35800) {
+      leds_off();
+    }
     protectedRunningLEDTime++;
 
   }
@@ -358,17 +371,21 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
       PrintDebug("Runing LED");
       PrintDebug( protectedRunningLED);
       leds[protectedRunningLED] = CRGB::Green;
+       leds[protectedRunningLED + 1] = CRGB::Green;
       FastLED.show();
 
     }
 
     protectedRunningLEDTime++;
+    if (secenarioTime >= 43800) {
+      leds_off();
+    }
 
   }
   if (protectedStage == 8 && secenarioTime >= 44000) {
     leds_off();
     protectedStage = 9;
-    driveForward(APHASE, AENBL);
+    driveReverse(APHASE, AENBL);
     PrintDebug("Stage Parkin Lot");
     for (int i = PARKING_LEDS_START; i <= PARKING_LEDS_END; i++) {
       leds[i] = CRGB::Green;
@@ -404,9 +421,9 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   }
 
   if (unprotectedStage == 1 && secenarioTime >= 8000) {
-        /// Car Moving
-    driveForward(APHASE, AENBL);
-        digitalWrite(carLedG, HIGH);
+    /// Car Moving
+    driveReverse(APHASE, AENBL);
+    digitalWrite(carLedG, HIGH);
     leds_off();
     unprotectedStage = 2;
     PrintDebug("Stage 2");
@@ -416,7 +433,7 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
     FastLED.show();
   }
   if (unprotectedStage == 2  && secenarioTime >= 12000) {
-        // digitalWrite(carLedG, LOW);
+    // digitalWrite(carLedG, LOW);
     driveStop(APHASE, AENBL);
     leds_off();
     unprotectedStage = 3;
@@ -441,14 +458,20 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
       unprotectedRunningLED--;
       if ( unprotectedRunningLED < ANTENA_TO_CAR_LED_START) {
         unprotectedRunningLED = ANTENA_TO_CAR_LED_END;
-      }
+      }else{
+        
+        }
 
       PrintDebug("Runing LED");
       PrintDebug( protectedRunningLED);
       leds[unprotectedRunningLED] = CRGB::Red;
+      leds[unprotectedRunningLED + 1] = CRGB::Red;
       FastLED.show();
 
     }
+       if (secenarioTime >= 19800){
+      leds_off();
+      }
     // FastLED.show();
     unprotectedRunningLEDTime++;
   }
@@ -480,17 +503,53 @@ void UnprotectedKidnapLedLoop(unsigned long secenarioTime) {
     FastLED.show();
   }
   if (unprotectedKidnapStage == 0 && secenarioTime >= 4000) {
+    leds_off();
     unprotectedKidnapStage = 1;
     PrintDebug("Kidnap Stage 1");
   }
 
   if (unprotectedKidnapStage == 1 && secenarioTime >= 8000) {
-
+ unprotectedKidnapStage = 2;
 
   }
   if (unprotectedKidnapStage == 2 && secenarioTime >= 49000) {
     //leds_off();
     unprotectedStage = 7;
+
+  }
+
+
+}
+
+
+int unprotectedEndStage = 0;
+int unprotectedEndRunningLED = 0;
+int unprotectedEndRunningLEDTime = 0;
+int unprotectedEndRunningLEDMaxTime = 2000;
+void UnprotectedEndLedLoop(unsigned long secenarioTime) {
+
+
+  if (secenarioTime <= 1000) {
+    leds_off();
+    PrintDebug("Unprotected End Stage 1");
+     driveReverse(APHASE, AENBL);
+   // unprotectedEndStage = 0;
+   // leds[TOUCH_LED] = CRGB::Red;
+   // FastLED.show();
+  }
+  if (unprotectedEndStage == 0 && secenarioTime >= 8000) {
+    driveStop(APHASE, AENBL);
+    unprotectedEndStage = 1;
+    
+  }
+
+  if (unprotectedEndStage == 1 && secenarioTime >= 12000) {
+unprotectedEndStage = 2;
+
+  }
+  if (unprotectedEndStage == 2 && secenarioTime >= 49000) {
+    //leds_off();
+    unprotectedEndStage = 7;
 
   }
 
