@@ -82,7 +82,7 @@ CRGB leds[NUM_LEDS];
 #define TIME_BEFORE_CAR_TURNNING_RED_UNPROTECTED 1000
 #define TIME_FOR_FIRST_MOVIE_UNPROTECTED 24000
 #define TIME_LIMIT_FOR_TOUCH 25000
-#define TIME_FOR_SECOND_MOVIE_UNPROTECTED 1000
+#define TIME_FOR_SECOND_MOVIE_UNPROTECTED 8000
 #define TIME_PROTECTED_MOVIE 50000
 
 ///////////////// Scenarios //////////////////
@@ -348,12 +348,8 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
   }
   if ((protectedStage == 5 || protectedStage == 4) && secenarioTime >= 24000 && secenarioTime <= 28000) {
     //PrintDebug("Stage Antena To Car 4");
-
-    //digitalWrite(carLedR, HIGH);
     protectedStage = 5;
-
-
-    if (protectedRunningLEDTime >= 3000) {
+    if (protectedRunningLEDTime >= 5000) {
       ///leds_off();
       protectedRunningLEDTime = 0;
       protectedRunningLED--;
@@ -373,25 +369,16 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
       FastLED.show();
 
     }
-
+    protectedRunningLEDTime++;
 
     if (secenarioTime >= 27800) {
       protectedRunningLED = CAR_TO_TECHNICIAN_LED_START;
       leds_off();
     }
-    // FastLED.show();
-    protectedRunningLEDTime++;
     if (secenarioTime >= 27600 && secenarioTime <= 27750) {
-
       driveReverse(APHASE, AENBL);
     }
-
-
-
   }
-
-
-
   if ((protectedStage == 6 || protectedStage == 5) && secenarioTime >= 32500 && secenarioTime <= 36000) {
     protectedStage = 6;
     if (protectedRunningLEDTime >= protectedRunningLEDMaxTime) {
@@ -490,69 +477,99 @@ int unprotectedRunningLED = 0;
 int unprotectedRunningLEDTime = 0;
 int unprotectedRunningLEDMaxTime = 2000;
 void UnprotectedLedLoop(unsigned long secenarioTime) {
-  if (secenarioTime <= 1000) {
+
+
+  if (secenarioTime <= 700 && secenarioTime >= 500) {
+    leds_off();
     unprotectedStage = 0;
+    wasCarAllradyThere = false;
   }
   if (unprotectedStage == 0 && secenarioTime >= 4000) {
     unprotectedStage = 1;
-    PrintDebug("Stage 1");
-
+    PrintDebug("unprotected Stage 1");
   }
-
   if (unprotectedStage == 1 && secenarioTime >= 8000) {
-    /// Car Moving
-    driveReverse(APHASE, AENBL);
-    digitalWrite(carLedG, HIGH);
-    leds_off();
     unprotectedStage = 2;
     PrintDebug("Stage 2");
+    /// Car Moving
+    PrintDebug("Car starts");
+    digitalWrite(carLedG, HIGH);
+    driveReverse(APHASE, AENBL);
     for (int i = HACKER_LED_START; i <= HACKER_LED_END; i++) {
       leds[i] = CRGB::Red;
     }
     FastLED.show();
   }
-  if (unprotectedStage == 2  && secenarioTime >= 12000) {
-    // digitalWrite(carLedG, LOW);
-    driveStop(APHASE, AENBL);
-    leds_off();
+  /// Stop Car At Spot
+  if (unprotectedStage <= 5 && unprotectedStage >= 1 && secenarioTime <= 20000) {
+    if (wasCarThere() && !wasCarAllradyThere) {
+      delay(400);
+      driveStop(APHASE, AENBL);
+      wasCarAllradyThere = true;
+    }
+  }
+  if ((unprotectedStage == 2 || unprotectedStage == 3)
+      && secenarioTime >= 12000 && secenarioTime <= 16000 ) {
     unprotectedStage = 3;
-    leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
-    FastLED.show();
+    PrintDebug("Haker To Antena");
+    unprotectedRunningLEDTime++;
+    if ( unprotectedRunningLEDTime >= 10) {
+      if (protectedWasLightOn) {
+        PrintDebug("Light On ");
+        // leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
+        leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
+        FastLED.show();
+      }
+      else {
+        PrintDebug("Light Off ");
+        leds[HACKER_TO_ANTENA_LED] = CRGB::Black;
+        FastLED.show();
+      }
+      unprotectedRunningLEDTime = 0;
+      protectedWasLightOn = !protectedWasLightOn;
+    }
   }
   if (unprotectedStage == 3 && secenarioTime >= 16000) {
     leds_off();
     unprotectedStage = 4;
-
     leds[ANTENA_LED] = CRGB::Red;
     FastLED.show();
   }
   if ((unprotectedStage == 4 || unprotectedStage == 5) && secenarioTime >= 20000 && secenarioTime <= 24000) {
-    //PrintDebug("Stage Antena To Car 4");
-    digitalWrite(carLedR, HIGH);
-    digitalWrite(carLedG, LOW);
-    unprotectedStage = 4;
-    if (unprotectedRunningLEDTime >= unprotectedRunningLEDMaxTime) {
-      leds_off();
+    /// Change car lights to red
+    if (secenarioTime <= 20200) {
+      digitalWrite(carLedR, HIGH);
+      digitalWrite(carLedG, LOW);
+    }
+    //PrintDebug("Stage Antena To Car");
+    unprotectedStage = 5;
+    if (unprotectedRunningLEDTime >= 5000) {
+      ///leds_off();
       unprotectedRunningLEDTime = 0;
       unprotectedRunningLED--;
       if ( unprotectedRunningLED < ANTENA_TO_CAR_LED_START) {
-        unprotectedRunningLED = ANTENA_TO_CAR_LED_END;
-      } else {
-
+        unprotectedRunningLED = ANTENA_TO_CAR_LED_END ;
+      }
+      PrintDebug("Runing LED");
+      PrintDebug( unprotectedRunningLED);
+      for (int i = ANTENA_TO_CAR_LED_START; i <= ANTENA_TO_CAR_LED_END; i++) {
+        leds[i] = CRGB::Black;
+      }
+      leds[unprotectedRunningLED] = CRGB::Red;
+      if (!(unprotectedRunningLED + 1 <= ANTENA_TO_CAR_LED_START || unprotectedRunningLED + 1 >= ANTENA_TO_CAR_LED_END)) {
+        leds[unprotectedRunningLED + 1] = CRGB::Red;
       }
 
-      PrintDebug("Runing LED");
-      PrintDebug( protectedRunningLED);
-      leds[unprotectedRunningLED] = CRGB::Red;
-      leds[unprotectedRunningLED + 1] = CRGB::Red;
       FastLED.show();
 
     }
+    unprotectedRunningLEDTime++;
+
     if (secenarioTime >= 19800) {
       leds_off();
     }
     // FastLED.show();
-    unprotectedRunningLEDTime++;
+
   }
   if (unprotectedStage == 5 && secenarioTime >= 24000) {
     leds_off();
@@ -568,13 +585,11 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
 
 }
 
-
 int unprotectedKidnapStage = 0;
 int unprotectedKidnapRunningLED = 0;
 int unprotectedKidnapRunningLEDTime = 0;
 int unprotectedKidnapRunningLEDMaxTime = 2000;
 void UnprotectedKidnapLedLoop(unsigned long secenarioTime) {
-
 
   if (secenarioTime <= 1000) {
     unprotectedKidnapStage = 0;
@@ -582,24 +597,20 @@ void UnprotectedKidnapLedLoop(unsigned long secenarioTime) {
     FastLED.show();
   }
   if (unprotectedKidnapStage == 0 && secenarioTime >= 4000) {
-    leds_off();
     unprotectedKidnapStage = 1;
     PrintDebug("Kidnap Stage 1");
   }
 
   if (unprotectedKidnapStage == 1 && secenarioTime >= 8000) {
+    leds_off();
     unprotectedKidnapStage = 2;
-
   }
   if (unprotectedKidnapStage == 2 && secenarioTime >= 49000) {
-    //leds_off();
-    unprotectedStage = 7;
-
+    unprotectedKidnapStage = 3;
   }
 
 
 }
-
 
 int unprotectedEndStage = 0;
 int unprotectedEndRunningLED = 0;
@@ -609,27 +620,18 @@ void UnprotectedEndLedLoop(unsigned long secenarioTime) {
 
 
   if (secenarioTime <= 1000) {
+    unprotectedEndStage = 0;
     leds_off();
     PrintDebug("Unprotected End Stage 1");
     driveReverse(APHASE, AENBL);
-    // unprotectedEndStage = 0;
-    // leds[TOUCH_LED] = CRGB::Red;
-    // FastLED.show();
   }
-  if (unprotectedEndStage == 0 && secenarioTime >= 8000) {
+  if (unprotectedEndStage == 0 && secenarioTime >= 5000
+      && secenarioTime <= 5200) {
     driveStop(APHASE, AENBL);
     unprotectedEndStage = 1;
-
   }
-
-  if (unprotectedEndStage == 1 && secenarioTime >= 12000) {
-    unprotectedEndStage = 2;
-
-  }
-  if (unprotectedEndStage == 2 && secenarioTime >= 49000) {
-    //leds_off();
-    unprotectedEndStage = 7;
-
+  if (unprotectedEndStage == 1 && secenarioTime >= 49000) {
+    unprotectedEndStage = 3;
   }
 
 
