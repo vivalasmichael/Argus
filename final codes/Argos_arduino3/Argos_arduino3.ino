@@ -42,8 +42,8 @@ int pressurePin = A1;
 int touch_force;
 
 ///////////////// soft Toch Sensor //////////////////
-int softpotPin = A0; //analog pin 0
-int softpotReading ;
+//int softpotPin = A0; //analog pin 0
+//int softpotReading ;
 
 ///////////////// LEDS  //////////////////
 #define LED_PIN     5
@@ -78,7 +78,7 @@ CRGB leds[NUM_LEDS];
 #define TECHNICIAN_TO_PARKING_LED_END 35
 
 ///////////////// Movie Times  //////////////////
-#define TIME_FOR_EXPLANATION_MOVIE 5000
+#define TIME_FOR_EXPLANATION_MOVIE 100000
 #define TIME_BEFORE_CAR_TURNNING_RED_UNPROTECTED 1000
 #define TIME_FOR_FIRST_MOVIE_UNPROTECTED 24000
 #define TIME_LIMIT_FOR_TOUCH 25000
@@ -118,7 +118,7 @@ long duration;
 int distance;
 
 
-bool testMode = true;
+bool testMode = false;
 
 void setup() {
   Serial.begin(9600);
@@ -134,7 +134,7 @@ void setup() {
   pinMode(button1Pin, INPUT);
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
-  digitalWrite(softpotPin, HIGH); //enable pullup resistor
+  //digitalWrite(pressurePin, HIGH); //enable pullup resistor
 
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
@@ -223,13 +223,18 @@ void loop() {
     ///////////// wait for touch sensor to be triggered or time limit אם end (while(touch==LOW || TIME_LIMIT_FOR_TOUCH)
     //while ( millis() - startedAtInternal < TIME_LIMIT_FOR_TOUCH) {
     PrintDebug("Unprotected Ask Ransom");
-    while (analogRead(pressurePin) < 1000 && millis() - startedAtInternal < TIME_LIMIT_FOR_TOUCH) {
+    startedAtInternal = millis();
+    int prsureRes = analogRead(pressurePin);
+    while (prsureRes < 1000 && millis() - startedAtInternal < TIME_LIMIT_FOR_TOUCH) {
       //  PrintDebug("----------------------");
       UnprotectedKidnapLedLoop(millis() - startedAtInternal);
-      if (touch_force < 100) {
-        //PrintDebug("analogRead(pressurePin) < 100");
-      }
+      prsureRes = analogRead(pressurePin);
+
     }
+    PrintDebug("analogRead(pressurePin)");
+
+    PrintDebug(prsureRes);
+
     PrintDebug("Unprotected Ransom Given");
     leds_off();
     //  writeToRadio(3);
@@ -239,7 +244,7 @@ void loop() {
     unsigned long startedAtInternal2 = millis();
     while (millis() - startedAtInternal2 < TIME_FOR_SECOND_MOVIE_UNPROTECTED) {
       ////////////// start servo //////////////////
-      UnprotectedEndLedLoop(millis() - startedAtInternal);
+      UnprotectedEndLedLoop(millis() - startedAtInternal2);
     }
     leds_off();
     PrintDebug("Unprotected End ");
@@ -269,7 +274,7 @@ void loop() {
 int protectedStage = 0;
 int protectedRunningLED = 0;
 int protectedRunningLEDTime = 0;
-int protectedRunningLEDMaxTime = 1000;
+int protectedRunningLEDMaxTime = 3000;
 bool protectedWasLightOn = false;
 bool wasCarAllradyThere;
 
@@ -314,18 +319,18 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
 
   }
   if ((protectedStage == 2 || protectedStage == 3) && secenarioTime >= 16000 ) {
-    PrintDebug("Haker To Antena");
+    //  PrintDebug("Haker To Antena");
     protectedStage = 3;
     protectedRunningLEDTime++;
     if ( protectedRunningLEDTime >= 10) {
       if (protectedWasLightOn) {
-        PrintDebug("Light On ");
+        //   PrintDebug("Light On ");
         // leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
         leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
         FastLED.show();
       }
       else {
-        PrintDebug("Light Off ");
+        //  PrintDebug("Light Off ");
         leds[HACKER_TO_ANTENA_LED] = CRGB::Black;
         FastLED.show();
       }
@@ -347,7 +352,7 @@ void ProtectedLedLoop(unsigned long secenarioTime) {
     protectedRunningLED = ANTENA_TO_CAR_LED_END;
   }
   if ((protectedStage == 5 || protectedStage == 4) && secenarioTime >= 24000 && secenarioTime <= 28000) {
-    //PrintDebug("Stage Antena To Car 4");
+    //  PrintDebug("Stage Antena To Car 4");
     protectedStage = 5;
     if (protectedRunningLEDTime >= 5000) {
       ///leds_off();
@@ -490,7 +495,7 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   }
   if (unprotectedStage == 1 && secenarioTime >= 8000) {
     unprotectedStage = 2;
-    PrintDebug("Stage 2");
+    //PrintDebug("Stage 2");
     /// Car Moving
     PrintDebug("Car starts");
     digitalWrite(carLedG, HIGH);
@@ -504,6 +509,8 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   if (unprotectedStage <= 5 && unprotectedStage >= 1 && secenarioTime <= 20000) {
     if (wasCarThere() && !wasCarAllradyThere) {
       delay(400);
+      digitalWrite(carLedR, HIGH);
+      digitalWrite(carLedG, LOW);
       driveStop(APHASE, AENBL);
       wasCarAllradyThere = true;
     }
@@ -511,9 +518,9 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
   if ((unprotectedStage == 2 || unprotectedStage == 3)
       && secenarioTime >= 12000 && secenarioTime <= 16000 ) {
     unprotectedStage = 3;
-    PrintDebug("Haker To Antena");
+    // PrintDebug("Haker To Antena");
     unprotectedRunningLEDTime++;
-    if ( unprotectedRunningLEDTime >= 10) {
+    if ( unprotectedRunningLEDTime >= 25) {
       if (protectedWasLightOn) {
         PrintDebug("Light On ");
         // leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
@@ -530,23 +537,22 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
     }
   }
   if (unprotectedStage == 3 && secenarioTime >= 16000) {
+    PrintDebug("Antena");
     leds_off();
     unprotectedStage = 4;
     leds[ANTENA_LED] = CRGB::Red;
+    leds[HACKER_TO_ANTENA_LED] = CRGB::Black;
     FastLED.show();
+    unprotectedRunningLED = ANTENA_TO_CAR_LED_END;
   }
   if ((unprotectedStage == 4 || unprotectedStage == 5) && secenarioTime >= 20000 && secenarioTime <= 24000) {
     /// Change car lights to red
-    if (secenarioTime <= 20200) {
-      digitalWrite(carLedR, HIGH);
-      digitalWrite(carLedG, LOW);
-    }
-    //PrintDebug("Stage Antena To Car");
+    unprotectedRunningLEDTime++;
+    //  PrintDebug("Stage Antena To Car");
     unprotectedStage = 5;
-    if (unprotectedRunningLEDTime >= 5000) {
-      ///leds_off();
+    if (unprotectedRunningLEDTime >= 4000) {
       unprotectedRunningLEDTime = 0;
-      unprotectedRunningLED--;
+
       if ( unprotectedRunningLED < ANTENA_TO_CAR_LED_START) {
         unprotectedRunningLED = ANTENA_TO_CAR_LED_END ;
       }
@@ -559,13 +565,13 @@ void UnprotectedLedLoop(unsigned long secenarioTime) {
       if (!(unprotectedRunningLED + 1 <= ANTENA_TO_CAR_LED_START || unprotectedRunningLED + 1 >= ANTENA_TO_CAR_LED_END)) {
         leds[unprotectedRunningLED + 1] = CRGB::Red;
       }
-
+      unprotectedRunningLED--;
       FastLED.show();
 
     }
-    unprotectedRunningLEDTime++;
 
-    if (secenarioTime >= 19800) {
+
+    if (secenarioTime >= 23800) {
       leds_off();
     }
     // FastLED.show();
@@ -624,6 +630,7 @@ void UnprotectedEndLedLoop(unsigned long secenarioTime) {
     leds_off();
     PrintDebug("Unprotected End Stage 1");
     driveReverse(APHASE, AENBL);
+    digitalWrite(carLedR, LOW);
   }
   if (unprotectedEndStage == 0 && secenarioTime >= 5000
       && secenarioTime <= 5200) {
@@ -641,9 +648,15 @@ void UnprotectedEndLedLoop(unsigned long secenarioTime) {
 ////////// shut down all leds //////////
 void leds_off() {
   for (int i = 0; i <= NUM_LEDS; i++) {
-    leds[i] = CRGB::Black;
-    FastLED.show();
+    if (i == TREE_1 || i == TREE_2 || i == TREE_3) {
+
+    } else {
+      leds[i] = CRGB::Black;
+    }
+
+
   }
+  FastLED.show();
 }
 int globalDistance;
 
@@ -790,9 +803,9 @@ void TestLeds() {
   for (int i = ANTENA_TO_CAR_LED_START; i <= ANTENA_TO_CAR_LED_END; i++) {
     leds[i] = CRGB::Purple;
   }
-  leds[TREE_1] = CRGB::Green;
-  leds[TREE_2] = CRGB::Green;
-  leds[TREE_3] = CRGB::Green;
+  leds[TREE_1] = CRGB::White;
+  leds[TREE_2] = CRGB::White;
+  leds[TREE_3] = CRGB::White;
 
   leds[ANTENA_LED] = CRGB::Blue;
   leds[HACKER_TO_ANTENA_LED] = CRGB::Red;
